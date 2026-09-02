@@ -1,4 +1,5 @@
 const  nodemailer= requier(nodemailer) ;
+import transporter from './utils/mailer.js';
 const getTomorrowDateString = () => {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);

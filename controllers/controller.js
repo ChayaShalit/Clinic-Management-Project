@@ -10,4 +10,14 @@ const getAppointmentsForTomorrow = async () => {
         status: 'confirmed', reminderSent: true, wantsReminder: {$ne:true }
     });
     return appointments;}
-    
+    const sendAllTomorrowReminders =async()=>{
+        const appointments = await getAppointmentsForTomorrow();
+        await Promise.all(appointments.map(async(appointment)=>{
+          try{  await sendReminderEmail(appointment);
+            appointment.reminderSent = true;
+            await appointment.save();
+          } catch (error) {
+            console.error('Error sending reminder email:', error);
+          }
+        }));
+    }

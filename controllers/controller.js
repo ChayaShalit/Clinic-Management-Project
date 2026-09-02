@@ -10,6 +10,15 @@ const getAppointmentsForTomorrow = async () => {
         status: 'confirmed', reminderSent: true, wantsReminder: {$ne:true }
     });
     return appointments;}
+    const sendReminderEmail = async (appointment) => {
+        const mail ={
+            from:process.env.EMAIL_USER,
+            to: appointment.patientEmail,
+            subject: ' תזכורת לתור מחר',
+            text: `שלום ${appointment.patientName},\n\nזוהי תזכורת לתור שלך מחר בתאריך ${appointment.date} בשעה ${appointment.time}.\n\nבברכה,\nצוות המרפאה`
+        }
+        await transporter.sendMail(mail);
+    }
     const sendAllTomorrowReminders =async()=>{
         const appointments = await getAppointmentsForTomorrow();
         await Promise.all(appointments.map(async(appointment)=>{

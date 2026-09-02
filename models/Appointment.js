@@ -28,6 +28,10 @@ const appointmentSchema = new mongoose.Schema({
     reminderSent: {
         type: Boolean,
         default: false
+    },
+    wantsReminder: {
+        type: Boolean,
+        default: false
     }
 });
 

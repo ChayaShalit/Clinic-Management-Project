@@ -4,13 +4,14 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import {env} from './config/env.js'
 import {connectDB } from './config/db.js';
-import cron from 'node-cron';
-
+import { startReminderJob } from './jobs/reminder job.js';
 const app =express();
 
 connectDB();
 
 app.use(express.json());
+
+startReminderJob();
 
 app.use(morgan('dev'));
 mongoose.connectDB();

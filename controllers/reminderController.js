@@ -1,4 +1,5 @@
-const  nodemailer= requier(nodemailer) ;
+import  Appointment from 
+'../models/Appointm.js' ;
 import transporter from './utils/mailer.js';
 const getTomorrowDateString = () => {
         const tomorrow = new Date();

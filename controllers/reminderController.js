@@ -1,5 +1,5 @@
-import  Appointment from 
-'../models/Appointm.js' ;
+import Appointment from '../models/Appointm.js';
+import PDFDocument from 'pdfkit';
 import transporter from './utils/mailer.js';
 const getTomorrowDateString = () => {
         const tomorrow = new Date();
@@ -31,3 +31,18 @@ const getAppointmentsForTomorrow = async () => {
           }
         }));
     }
+    const generatePDFReport = async (req, res) => {
+        const appointments = await getAppointmentsForTomorrow();
+        const doc = new PDFDocument();
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=tomorrow_appointments.pdf');
+        doc.pipe(res);
+        doc.fontSize(16).text('תזכורת לתורים מחר', { align: 'center' });
+        doc.moveDown();
+        appointments.forEach((appointment, index) => {
+            doc.fontSize(12).text(`תור ${index + 1}:`);
+            doc.text(`שם המטופל: ${appointment.patientName}`);
+        });    
+         doc.end();
+    };
+         export{getTodayAppointmentsForTomorrow, generatePDFReport};

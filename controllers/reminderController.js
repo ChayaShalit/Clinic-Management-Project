@@ -9,10 +9,11 @@ const getTomorrowDateString = () => {
     };
 
 const getAppointmentsForTomorrow = async () => {
-    const Appointment =await Appointment .find({ date: getTomorrowDateString(),
+    const Appointment =await Appointment.find({ date: getTomorrowDateString(),
         status: 'confirmed', reminderSent: true, wantsReminder: {$ne:true }
     });
-    return appointments;}
+    return appointments;
+}
     
     const sendReminderEmail = async (appointment) => {
         const mail ={
@@ -49,4 +50,4 @@ const getAppointmentsForTomorrow = async () => {
         });    
          doc.end();
     };
-         export{getTodayAppointmentsForTomorrow, generatePDFReport};
+         export{getTodayAppointmentsForTomorrow,sendAllTomorrowReminders, generatePDFReport};

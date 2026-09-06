@@ -1,9 +1,16 @@
-import mongoose from 'mongoose'
+import {model,Schema} from 'mongoose'
 import bcrypt from 'bcrypt'
 
 
-const userSchema = new mongoose.Schema(
+const userSchema = new Schema(
   {
+    tz:{
+        type:String,
+        required:[true,'נא להזין מספר זהות'],
+        unique:true,
+        trim:true,
+        maxlength:[9,'אורך מספר זהות עד 9 תוים']
+    },
     name: {
       type: String,
       required: [true, 'נא להזין שם מלא'],
@@ -42,8 +49,8 @@ const userSchema = new mongoose.Schema(
 
 //פונקצית הצפנת הסיסמא ,
 //  מצפינה את הסיסמא של המשתמש ושומרת בדטהבייס את הסיסמא המוצפנת
-userSchema.pre('save',async function next(){
-    if (!isModified('password')) 
+userSchema.pre('save',async function (next){
+    if (!this.isModified('password')) 
         return next()
     try{
         const salt = await bcrypt.genSalt(10);
@@ -56,6 +63,8 @@ userSchema.pre('save',async function next(){
 });
 
 userSchema.methods.comparePassword= async function (passwordFromUser){
-    
+
         return await bcrypt.compare(passwordFromUser,this.password);
 }
+
+export const User =model('users',userSchema)

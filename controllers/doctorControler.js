@@ -14,4 +14,4 @@ const getTodayAppointments = async (doctorId) => {
     });
     return appointments;
 };
-export { getTodayAppointments };
+export {getTodayAppointments} ;

@@ -32,6 +32,11 @@ const appointmentSchema = new mongoose.Schema({
     wantsReminder: {
         type: Boolean,
         default: false
+    },
+    doctorId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Doctor',
+        required: true
     }
 });
 

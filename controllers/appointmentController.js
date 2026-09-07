@@ -82,3 +82,22 @@ export const deleteAppointment = async (req, res) => {
         res.status(500).json({ message: "שגיאת שרת בעת ביטול התור" });
     }
 };
+
+// פונקציה לשליפת התורים של רופא ספציפי
+export const getDoctorAppointments = async (req, res) => {
+    try {
+        const { doctorId } = req.params;
+        
+        // שולפים מהמסד את כל התורים של הרופא וממיינים אותם לפי השעה (1 = סדר עולה)
+        const appointments = await Appointment.find({ doctorId }).sort({ time: 1 });
+
+        if (!appointments || appointments.length === 0) {
+            return res.status(404).json({ message: "לא נמצאו תורים לרופא זה" });
+        }
+
+        res.status(200).json({ appointments });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "שגיאת שרת בעת שליפת התורים" });
+    }
+};

@@ -32,3 +32,4 @@ const markReferalAsRead=async(req ,res)=>{
         res.status(500).json({message:"error in update referal status"})
     }
 }
+export {createReferal,getReferalForPatient,markReferalAsRead}

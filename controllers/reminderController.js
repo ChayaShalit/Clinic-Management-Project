@@ -32,7 +32,9 @@ const getAppointmentsForTomorrow = async () => {
             appointment.reminderSent = true;
             await appointment.save();
           } catch (error) {
-            console.error('Error sending reminder email:', error);
+        error.message = 'Error sending reminder email:' + error.message;
+            error.status = 500;
+            
           }
         }));
     }

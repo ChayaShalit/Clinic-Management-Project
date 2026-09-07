@@ -20,5 +20,5 @@ patientId: {
 
 );
 
-const referal=mongoose.model('referal',referalSchema)
-export default referal
+const Referal=mongoose.model('Referal',referalSchema)
+export default Referal

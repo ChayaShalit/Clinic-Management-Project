@@ -9,7 +9,7 @@ const getTomorrowDateString = () => {
     };
 
 const getAppointmentsForTomorrow = async () => {
-    const Appointment =await Appointment.find({ date: getTomorrowDateString(),
+    const appointments =await Appointment.find({ date: getTomorrowDateString(),
         status: 'confirmed', reminderSent: true, wantsReminder: {$ne:true }
     });
     return appointments;

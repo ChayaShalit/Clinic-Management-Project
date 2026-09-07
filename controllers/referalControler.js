@@ -11,5 +11,14 @@ const createReferal=async(req,res)=>{
         res.status(500).json({message:"error in create referal"})
     }
 };
-const getReferalForPatient=()=>{}
+const getReferalForPatient=async(req,res)=>{
+    const patientId = req.params.patientId
+    try {
+        const referals=await  Referal.find({patientId:patientId})
+        res.json(get)
+    }
+    catch(error){
+        res.status(500).json({message:"error in ID"})
+    }
+}
 const markReferalAsRead=()=>{}

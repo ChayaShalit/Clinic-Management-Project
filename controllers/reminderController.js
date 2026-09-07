@@ -1,6 +1,6 @@
-import Appointment from '../models/Appointm.js';
+import Appointment from '../models/Appointment.model.js';
 import PDFDocument from 'pdfkit';
-import transporter from './utils/mailer.js';
+import transporter from '../utils/mailer.js';
 
 const getTomorrowDateString = () => {
         const tomorrow = new Date();

@@ -1,4 +1,4 @@
-import { jwt  } from "jsonwebtoken"
+import jwt from "jsonwebtoken"
 import {env} from '../config/env.js'
 import { User } from "../models/User.model.js"; 
 
@@ -10,8 +10,11 @@ export const auth =async (req,res,next) => {
           const authHeader = req.headers.authorization;
 
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
-                return next({ status: 401, error: new Error('אין טוקן מזהה או מבנה שגוי') });
-                }
+            const error = new Error('אין טוקן מזהה או מבנה שגוי') ;
+            error.status = 401;
+            error.type= 'token error'
+            return next(error);
+        }
         const token = authHeader.split(' ')[1];
 
         const userData= jwt.verify(token,env.JWT_SECRET_KEY)
@@ -19,16 +22,21 @@ export const auth =async (req,res,next) => {
         const userExists = await User.findById(userData.id);
 
         if(!userExists){
-            
-            return next({ status: 401, error: new Error('המשתמש המשויך לטוקן זה אינו קיים במערכת') });
+            const error =new Error('המשתמש המשויך לטוקן זה אינו קיים במערכת') ;
+            error.status= 401;
+            error.type='auth error';
+            return next(error);
 
         }
             req.currentUser = { id: userExists._id, role:userExists.role}
             next()
     }
     
-    catch(err){
-          next({ status: 401, error: new Error('no token') });
+    catch(error){
+        error.status= 401;
+        error.type='token error'
+        next(error)
+
     }
 }
 
@@ -39,7 +47,11 @@ export const authDoctor = (req,res,next)=>{
 
         return next()
     }
-    next({ status: 403, error: new Error('גישה חסומה: נדרשת הרשאת רופא') });
+    
+    const error = new Error('גישה חסומה: נדרשת הרשאת רופא');
+    error.status = 403;
+    error.type = 'auth error';
+    next(error);
 }
 
 //עבור נתיבים מיוחדים לפציינים
@@ -49,5 +61,9 @@ export const authPatient = (req,res,next)=>{
 
         return next()
     }
-    next({ status: 403, error: new Error('גישה חסומה: נדרשות הרשאות מטופל') });
+    
+    const error = new Error('גישה חסומה: נדרשות הרשאות מטופל');
+    error.status = 403;
+    error.type = 'auth error';
+    next(error);
 }

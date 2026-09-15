@@ -3,9 +3,9 @@ import { createReferal,getReferalForPatient,markReferalAsRead
 
  } from '../controllers/referalControler.js'
  import files from '../middlewares/files.middleware.js';
- Router.post('/referals',files.single('attachedFile'),createReferal)
+
  export const referalRouter=express.Router();
+referalRouter.post('/referals', files.single('attachedFile'), createReferal)
  referalRouter.get('/patients/:id/referals',getReferalForPatient)
- referalRouter.post('/referals',createReferal)
+
  referalRouter.put('/referals/:referalId',markReferalAsRead)
- export default referalRouter;

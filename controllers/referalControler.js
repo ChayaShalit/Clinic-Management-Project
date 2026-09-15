@@ -1,10 +1,12 @@
 import Referal
 from "../models/Referal.js";
 const createReferal=async(req,res)=>{
+  
     try
     {
-        const newReferal=await Referal.create(req.body)
+        const newReferal = await Referal.create({ ...req.body, attachedFile: req.file?req.file.filename:null})
         res.json(newReferal)
+        
     }
     catch(error)
     {

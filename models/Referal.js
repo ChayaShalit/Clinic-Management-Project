@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 const referalSchema = new mongoose.Schema({
-    doctorId: {
+doctorId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Doctor',
 
@@ -14,7 +14,11 @@ patientId: {
     },
     description: {
         type: String
+    },
+    attachedFile:{
+        type: String
     }
+
 
 }
 

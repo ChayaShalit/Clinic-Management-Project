@@ -1,6 +1,6 @@
-import Appointment from '../models/Appointm.js';
+import Appointment from '../models/Appointment.model.js';
 import PDFDocument from 'pdfkit';
-import transporter from './utils/mailer.js';
+import transporter from '../utils/mailer.js';
 
 const getTomorrowDateString = () => {
         const tomorrow = new Date();
@@ -34,7 +34,7 @@ const getAppointmentsForTomorrow = async () => {
           } catch (error) {
         error.message = 'Error sending reminder email:' + error.message;
             error.status = 500;
-            
+
           }
         }));
     }
@@ -52,4 +52,4 @@ const getAppointmentsForTomorrow = async () => {
         });    
          doc.end();
     };
-         export{getTodayAppointmentsForTomorrow,sendAllTomorrowReminders, generatePDFReport};
+         export{getAppointmentsForTomorrow,sendAllTomorrowReminders, generatePDFReport};

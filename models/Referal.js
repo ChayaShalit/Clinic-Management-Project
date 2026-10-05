@@ -3,17 +3,22 @@ const referalSchema = new mongoose.Schema({
 doctorId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Doctor',
+        required:true
 
 },
 patientId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
+        required:true
     },
     kindReferal: {
-        type: String
+        type: String,
+        required :true
     },
     description: {
-        type: String
+        type: String,
+        required :true,
+        minlength:5
     },
     attachedFile:{
         type: String

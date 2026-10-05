@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>הפניה חדשה</title>
+    <script src="../js/createReferal.js" defer></script>
+</head>
+
+<body>
+    <h1>הפניה חדשה</h1>
+
+    <form id="referal-form">
+        <label for="doctorId">מזהה רופא</label>
+        <input type="text" id="doctorId" name="doctorId" required minlength="24" maxlength="24">
+
+        <label for="patientId">מזהה מטופל</label>
+        <input type="text" id="patientId" name="patientId" required minlength="24" maxlength="24">
+
+        <label for="kindReferal">סוג ההפניה</label>
+        <select id="kindReferal" name="kindReferal" required>
+            <option value="">בחירה...</option>
+            <option value="בדיקת דם">בדיקת דם</option>
+            <option value="הפניה לרופא מומחה">הפניה לרופא מומחה</option>
+            <option value="מרשם">מרשם</option>
+            <option value="אחר">אחר</option>
+        </select>
+
+        <label for="description">תיאור</label>
+        <textarea id="description" name="description" required minlength="5"></textarea>
+
+        <label for="attachedFile">קובץ מצורף (לא חובה)</label>
+        <input type="file" id="attachedFile" name="attachedFile" accept=".pdf,image/*">
+
+        <button type="submit">שליחה</button>
+    </form>
+
+    <p id="message"></p>
+</body>
+
+</html>

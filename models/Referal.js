@@ -17,8 +17,12 @@ patientId: {
     },
     attachedFile:{
         type: String
-    }
-
+    },
+status: {
+        type: String,
+        enum: ['open', 'read', 'closed'],
+        default: 'open'
+    },
 
 }
 

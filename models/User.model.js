@@ -29,6 +29,7 @@ const userSchema = new Schema(
       type: String,
       required: [true, 'נא להזין סיסמה'],
       minlength: [6, 'סיסמה חייבת להכיל לפחות 6 תווים'],
+      select: false
     },
     profileImage: {
       type: String,

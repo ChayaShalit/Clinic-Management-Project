@@ -79,6 +79,47 @@ try{
 }
 
 
+export const logIn = async (req,res,next) => {
+
+try{
+    const {email ,password}=req.body
+
+   const user = await User.findOne({email}).select('+password')
+
+   if(!user){
+    const error = new Error ('אימייל או סיסמא שגויים')
+    error.status=401
+    error.type='auth error'
+    return next(error);
+   }
+
+   const isMatch = await user.comparePassword(password);
+   
+   if(!isMatch){
+     const error = new Error ('אימייל או סיסמא שגויים')
+    error.status=401
+    error.type='auth error'
+    return next(error);
+   }
+
+    const newToken = createToken(user)
+
+    return res.status(200).json({
+        massege:'התחברת בהצלחה!',
+        token:newToken,
+        user:{
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+        }
+        })
+    }
+    catch(error){
+    return next(error)
+    }
+}
+
 
 
 

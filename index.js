@@ -8,6 +8,7 @@ import {connectDB } from './config/db.js';
 import { startReminderJob } from './jobs/reminder.job.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 import{referalRouter} from './routes/referalRoutes.js'
+import {authRouter} from './routes/authRouter.js'
 const app =express();
 
 connectDB();
@@ -17,7 +18,11 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 app.use(cors());
-app.use('/api', referalRouter)
+
+app.use('/api/', referalRouter)
+
+app.use('/api/auth',authRouter)
+
 // app.get('/api/health',(req,res)=>{
 //     res.status(200).json({stutus:'ok',message:'השרת עובד בהצלחה'})
 // })

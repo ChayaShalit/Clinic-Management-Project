@@ -1,9 +1,10 @@
 import { Patient } from "../models/Patient.model.js";
-import { Doctor } from "../models/Doctor.model.js";
+import Doctor from "../models/Doctor.model.js";
 import { User } from "../models/User.model.js";
 import{createToken} from "../services/jwt.services.js"
 
 export const register =async (req,res,next) => {
+    console.log('you are in register function')
 try{
     const {tz,name,email,password,profileImage,phone,role} =req.body
 

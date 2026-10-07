@@ -5,3 +5,8 @@ export const getReferalsByPatient= async(patientId)=>{
         throw new Error('שגיאה בשליפת ההפניות')
     return await response.json()
 }
+export const markReferalAsRead=async(id)=>{
+    const response=await fetch(`${API_URL}/referals/${id}`,{method:PUT})
+    if(!response.ok)
+        throw new Error('שגיאה בעדכון סטטוס')
+}

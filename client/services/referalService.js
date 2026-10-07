@@ -10,3 +10,11 @@ export const markReferalAsRead=async(id)=>{
     if(!response.ok)
         throw new Error('שגיאה בעדכון סטטוס')
 }
+export const createReferal=async(formData)=>{
+    const response=await fetch(`${API_URL}/referals`,{method:'POST',
+        body:formData
+    })
+    if(!response.ok)
+        throw new Error('שגיאה בשליחת הפניה')
+    return await response.json()
+}

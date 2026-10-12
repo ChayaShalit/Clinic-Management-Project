@@ -37,10 +37,10 @@ const fileFilter = (req, file, cb) => {
     cb(err, false);
   }
 };
-
+//מפעיל את הפונקציות הנל שהן רק תכונות 
 export const upload =multer({
     storage:storageObj,
-    fileFilter:fileFilter,
+    fileFilter: fileFilter,
     limits: { fileSize: 5 * 1024 * 1024 }
 });
 

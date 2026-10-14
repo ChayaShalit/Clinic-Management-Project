@@ -12,7 +12,7 @@ export const getPatientProfile = async (req,res,next)=>{
         if(!currentPatient){
             const err = new Error('משתמש לא נמצא!')
             err.status = 400
-            return next(arr)
+            return next(err)
         }
 
         if(req.currentUser.id != id){

@@ -10,4 +10,4 @@ router.put('/:id',auth, updateAppointment);
 router.delete('/:id',auth, deleteAppointment);
 router.get('/doctor/:doctorId',auth,authDoctor, getDoctorAppointments);
 
-export default router;
+export const appointmentrouter = router;

@@ -28,7 +28,7 @@ export const getDoctorProfile = async (req,res,next)=>{
             if(!currentDoctor){
                 const err = new Error('משתמש לא נמצא!')
                 err.status = 400
-                return next(arr)
+                return next(err)
             }
 
             // אוביקט שמגיע מהמידלוואר של האימות currentUser

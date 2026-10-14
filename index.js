@@ -10,6 +10,9 @@ import { errorHandler } from './middlewares/error.middleware.js';
 import{referalRouter} from './routes/referalRoutes.js'
 import {authRouter} from './routes/authRouter.js'
 import { patientRouter } from './routes/patientRouter.js';  
+import {appointmentrouter} from './routes/appointmentRoutes.js'
+import {doctorRouter} from './routes/doctorRoutes.js'
+import {reminderRouter} from './routes/reminderroutes.js'
 
 const app =express();
 
@@ -23,11 +26,17 @@ app.use(morgan('dev'));
 
 app.use(cors());
 
+app.use ('/appointment/',appointmentrouter)
+
+app.use ('/api/',doctorRouter)
+
 app.use('/api/', referalRouter)
 
 app.use('/api/auth',authRouter)
 
 app.use('/api/patient',patientRouter)
+
+app.use ('/api/',reminderRouter)
 
 // app.get('/api/health',(req,res)=>{
 //     res.status(200).json({stutus:'ok',message:'השרת עובד בהצלחה'})

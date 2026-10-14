@@ -5,4 +5,4 @@ import e from "express";
 
  router.get('/tomorrow-reminders',getAllTomorrowReminders);
  
- export default router;
+ export const reminderRouter= router;

@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>יומן תורים - מרפאה</title>
+<style>
+  :root {
+    --primary-blue: #1e40af;
+    --primary-hover: #1e3a8a;
+    --bg-main: #f1f5f9;
+    --text-dark: #1e293b;
+    --text-muted: #64748b;
+    --card-bg: #ffffff;
+    --border-color: #cbd5e1;
+    --success: #16a34a;
+    --success-bg: #f0fdf4;
+    --danger: #dc2626;
+    --danger-bg: #fef2f2;
+    --warning: #ca8a04;
+    --warning-bg: #fefce8;
+  }
+
+  * { box-sizing: border-box; }
+  
+  body {
+    direction: rtl;
+    font-family: system-ui, -apple-system, sans-serif;
+    margin: 0;
+    background: var(--bg-main);
+    color: var(--text-dark);
+  }
+
+  .app {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  header {
+    background: var(--primary-blue);
+    color: white;
+    padding: 20px 24px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  header h1 { 
+    margin: 0; 
+    font-size: 24px; 
+    font-weight: 700; 
+  }
+
+  .header-actions button {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .header-actions button:hover { 
+    background: rgba(255,255,255,0.3); 
+  }
+
+  .views { display: none; }
+  .views.active { display: block; animation: fadeIn 0.3s ease; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .month-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background: var(--card-bg);
+    padding: 12px 20px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+
+  .month-nav button {
+    background: var(--bg-main);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-dark);
+    transition: background 0.2s;
+  }
+
+  .month-nav button:hover { background: #e2e8f0; }
+  .month-title { font-size: 20px; font-weight: 700; color: var(--primary-blue); }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+  }
+
+  .dow-label {
+    text-align: center;
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 700;
+    padding: 10px 0;
+  }
+
+  .day-cell {
+    background: var(--card-bg);
+    border-radius: 12px;
+    min-height: 100px;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    position: relative;
+    transition: all 0.2s;
+  }
+
+  .day-cell.empty { background: transparent; border: none; }
+  
+  .day-cell.workday {
+    cursor: pointer;
+    border: 2px solid transparent;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+  
+  .day-cell.workday:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+    border-color: #93c5fd;
+  }
+
+  .day-num { font-weight: 700; font-size: 18px; color: var(--text-dark); }
+  .heb-date { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  
+  .day-view-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    background: var(--card-bg);
+    padding: 16px 24px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+
+  .day-view-header .back-btn {
+    background: var(--bg-main);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .day-view-title { font-size: 22px; font-weight: 700; color: var(--primary-blue); }
+  .day-view-sub { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
+
+  .slots-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+  }
+
+  .slots-table th {
+    text-align: right;
+    padding: 0 16px 8px;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .slot-row { 
+    background: var(--card-bg);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border-radius: 12px;
+    cursor: pointer; 
+    transition: transform 0.1s;
+  }
+  
+  .slot-row td:first-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+  .slot-row td:last-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+
+  .slot-row:hover { transform: scale(1.01); }
+  
+  .slots-table td { padding: 16px; font-size: 15px; }
+  
+  .slot-time { font-weight: 700; color: var(--primary-blue); width: 90px; font-size: 16px; }
+  .slot-empty { color: var(--text-muted); font-style: italic; }
+  .slot-booked { color: var(--success); font-weight: 600; }
+
+  .overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15,23,42,0.6);
+    backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  
+  .overlay.active { display: flex; }
+  
+  .modal {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 32px;
+    width: 400px;
+    max-width: 90vw;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal h3 { margin: 0 0 8px; font-size: 22px; color: var(--primary-blue); }
+  .modal .modal-sub { font-size: 15px; color: var(--text-muted); margin-bottom: 24px; font-weight: 500; }
+  
+  .form-group { margin-bottom: 16px; }
+  
+  .modal label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-dark);
+  }
+  
+  .modal input, .modal select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 15px;
+    font-family: inherit;
+    background: #f8fafc;
+    transition: border-color 0.2s;
+  }
+
+  .modal input:focus, .modal select:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    background: white;
+  }
+
+  .modal-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+  }
+  
+  .modal-buttons button {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.2s;
+  }
+
+  .modal-buttons button:hover { opacity: 0.9; }
+  
+  .btn-save { background: var(--primary-blue); color: white; }
+  .btn-close { background: var(--bg-main); color: var(--text-dark); }
+  
+  #apiMessage {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      text-align: center;
+      display: none;
+  }
+
+  .msg-success { background: var(--success-bg); color: var(--success); border: 1px solid #bbf7d0; }
+  .msg-error { background: var(--danger-bg); color: var(--danger); border: 1px solid #fecaca; }
+
+  /* זמני פיתוח - שדות חבויים למזהים */
+  .dev-fields {
+      background: var(--warning-bg);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border: 1px dashed var(--warning);
+  }
+  .dev-fields h4 { margin: 0 0 8px 0; color: var(--warning); font-size: 12px;}
+
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <h1>מערכת ניהול תורים - דף מטופל</h1>
+    <div class="header-actions">
+        <!-- נשאיר כפתור ריק כדי לשמור על היישור אם נרצה להוסיף משהו בעתיד -->
+    </div>
+  </header>
+
+  <!-- שדות מוסתרים זמניים (היה אמור להגיע מהתחברות המשתמש/רופא) -->
+  <div class="dev-fields">
+      <h4>שדות פיתוח (לצורך בדיקת ה-API)</h4>
+      <div style="display: flex; gap: 10px;">
+        <div style="flex: 1;">
+            <label style="font-size: 12px;">מזהה רופא מ-MongoDB:</label>
+            <input type="text" id="devDoctorId" value="" placeholder="הדביקי ID כאן" style="width: 100%; padding: 4px;">
+        </div>
+        <div style="flex: 1;">
+            <label style="font-size: 12px;">ת.ז מטופל (לדוגמה):</label>
+            <input type="text" id="devPatientId" value="123456789" style="width: 100%; padding: 4px;">
+        </div>
+      </div>
+  </div>
+
+  <!-- תצוגת לוח שנה (חודש) -->
+  <div id="monthView" class="views active">
+    <div class="month-nav">
+      <button onclick="changeMonth(-1)">‹ חודש קודם</button>
+      <div class="month-title" id="monthTitle"></div>
+      <button onclick="changeMonth(1)">חודש הבא ›</button>
+    </div>
+    <div class="calendar-grid" id="calendarGrid">
+        <!-- ימי השבוע והתאריכים יוזרקו לפה ע"י JavaScript -->
+    </div>
+  </div>
+
+  <!-- תצוגת יום ספציפי (שעות) -->
+  <div id="dayView" class="views">
+    <div class="day-view-header">
+      <button class="back-btn" onclick="showMonthView()">‹ חזרה ללוח השנה</button>
+      <div style="text-align: left;">
+        <div class="day-view-title" id="dayViewTitle"></div>
+        <div class="day-view-sub" id="dayViewSub"></div>
+      </div>
+    </div>
+    <table class="slots-table">
+      <thead>
+        <tr>
+            <th style="width:90px;">שעה</th>
+            <th>סטטוס תור</th>
+            <th>סוג טיפול</th>
+        </tr>
+      </thead>
+      <tbody id="slotsBody">
+          <!-- השעות יוזרקו לפה -->
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- חלון קופץ (Modal) לקביעת תור -->
+<div class="overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="modalTitle">קביעת תור חדש</h3>
+    <div class="modal-sub" id="modalSub"></div>
+
+    <form id="appointmentForm">
+        <div class="form-group">
+            <label>שם מטופל (לצוגה בלבד)</label>
+            <input type="text" id="patientName" placeholder="שם מלא של המטופל" required>
+        </div>
+
+        <div class="form-group">
+            <label>סוג טיפול</label>
+            <select id="treatmentType" required>
+                <option value="">— בחרו סוג טיפול —</option>
+                <option value="בדיקה שגרתית">בדיקה שגרתית</option>
+                <option value="ייעוץ">ייעוץ</option>
+                <option value="מעקב">מעקב</option>
+                <option value="טיפול מיוחד">טיפול מיוחד</option>
+            </select>
+        </div>
+
+        <div id="apiMessage"></div>
+
+        <div class="modal-buttons">
+            <button type="submit" class="btn-save" id="saveBtn">קבע תור</button>
+            <button type="button" class="btn-close" onclick="closeModal()">ביטול</button>
+        </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// משתנים גלובליים לניהול התאריכים
+let currentMonth = new Date(); // היום
+let activeDateKey = null; // ישמור תאריך בפורמט YYYY-MM-DD
+let activeSlotTime = null; // ישמור שעה בפורמט HH:MM
+
+// שרת ה-API שלכן (יש לוודא שהשרת רץ)
+const API_BASE_URL = 'http://localhost:5000/api';
+
+// פונקציית עזר ליצירת פורמט תאריך YYYY-MM-DD (הפורמט שהשרת שלכן מצפה לקבל)
+function formatDateForApi(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+// מעבר בין חודשים
+function changeMonth(delta) {
+  currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + delta, 1);
+  renderMonth();
+}
+
+// ייצור ויזואלי של לוח השנה
+function renderMonth() {
+  const monthNames = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  document.getElementById('monthTitle').textContent = `${monthNames[currentMonth.getMonth()]} ${currentMonth.getFullYear()}`;
+
+  const grid = document.getElementById('calendarGrid');
+  grid.innerHTML = '';
+
+  // ימי שבוע
+  const dowLabels = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+  dowLabels.forEach(l => {
+    const el = document.createElement('div');
+    el.className = 'dow-label';
+    el.textContent = l;
+    grid.appendChild(el);
+  });
+
+  const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+  const startOffset = firstDay.getDay(); // 0-6
+  const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth()+1, 0).getDate();
+
+  // תאים ריקים לתחילת החודש
+  for (let i=0; i<startOffset; i++) {
+    const el = document.createElement('div');
+    el.className = 'day-cell empty';
+    grid.appendChild(el);
+  }
+
+  // ימי החודש
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  for (let day=1; day<=daysInMonth; day++) {
+    const d = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+    const dow = d.getDay();
+    
+    // לפי ה-Middleware שלכן, שבת זה 6 וזה חסום. נניח ששישי (5) גם חסום למרפאה.
+    const isWorkday = (dow !== 5 && dow !== 6) && (d >= today); // רק ימי חול ומעכשיו והלאה
+    
+    const cell = document.createElement('div');
+    cell.className = 'day-cell' + (isWorkday ? ' workday' : '');
+
+    cell.innerHTML = `
+      <div class="day-num">${day}</div>
+      <div class="heb-date">${dowLabels[dow]}</div>
+    `;
+    
+    if (isWorkday) {
+      cell.onclick = () => openDayView(d);
+    } else {
+        cell.style.opacity = '0.5';
+        cell.style.background = '#f8fafc';
+    }
+    grid.appendChild(cell);
+  }
+}
+
+// פתיחת תצוגת השעות ליום מסוים
+function openDayView(d) {
+  activeDateKey = formatDateForApi(d);
+  const dowLabels = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+  
+  document.getElementById('monthView').classList.remove('active');
+  document.getElementById('dayView').classList.add('active');
+  
+  document.getElementById('dayViewTitle').textContent = `יום ${dowLabels[d.getDay()]}`;
+  document.getElementById('dayViewSub').textContent = activeDateKey;
+
+  renderSlots(activeDateKey);
+}
+
+function showMonthView() {
+  document.getElementById('dayView').classList.remove('active');
+  document.getElementById('monthView').classList.add('active');
+}
+
+// ייצור שעות פעילות (נניח 08:00 עד 16:00 כל חצי שעה)
+function generateTimeSlots() {
+    const slots = [];
+    for (let h = 8; h <= 15; h++) {
+        slots.push(`${String(h).padStart(2, '0')}:00`);
+        slots.push(`${String(h).padStart(2, '0')}:30`);
+    }
+    return slots;
+}
+
+// רינדור השעות בטבלה. הערה: כרגע נציג הכל כפנוי כדי להדגים את קביעת התור.
+// בשלב הבא (או אם תרצי) נוכל לעשות פה fetch לשליפת התורים מהשרת!
+async function renderSlots(dateStr) {
+  const slots = generateTimeSlots();
+  const tbody = document.getElementById('slotsBody');
+  tbody.innerHTML = '';
+
+  // פה יהיה אפשר בעתיד להביא את התורים שכבר קבועים לאותו יום מהשרת
+  // const existingAppointments = await fetchAppointmentsForDate(dateStr);
+
+  slots.forEach(time => {
+    const tr = document.createElement('tr');
+    tr.className = 'slot-row';
+    tr.onclick = () => openModal(time);
+
+    tr.innerHTML = `
+      <td class="slot-time">${time}</td>
+      <td><span class="slot-empty">פנוי לקביעה</span></td>
+      <td>-</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function openModal(time) {
+  activeSlotTime = time;
+  
+  const docId = document.getElementById('devDoctorId').value;
+  if(!docId) {
+      alert("שימי לב! אנא הדביקי מזהה רופא חוקי (ID מה-MongoDB) למעלה כדי שהבקשה תעבוד מול השרת שלכן.");
+  }
+
+  document.getElementById('modalTitle').textContent = `קביעת תור לשעה ${time}`;
+  document.getElementById('modalSub').textContent = `תאריך: ${activeDateKey}`;
+  
+  // איפוס הטופס
+  document.getElementById('appointmentForm').reset();
+  hideApiMessage();
+  
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+  activeSlotTime = null;
+}
+
+// סגירת המודל בלחיצה מחוץ אליו
+document.getElementById('modalOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'modalOverlay') closeModal();
+});
+
+// פונקציות עזר להודעות
+const msgEl = document.getElementById('apiMessage');
+function showApiMessage(msg, isSuccess) {
+    msgEl.textContent = msg;
+    msgEl.className = isSuccess ? 'msg-success' : 'msg-error';
+    msgEl.style.display = 'block';
+}
+function hideApiMessage() {
+    msgEl.style.display = 'none';
+}
+
+// שליחת הבקשה לשרת שלכן!
+document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const saveBtn = document.getElementById('saveBtn');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'קובע תור...';
+    hideApiMessage();
+
+    // איסוף הנתונים לפורמט שהפונקציה createAppointment בשרת שלכן מצפה לו
+    const appointmentData = {
+        patientId: document.getElementById('devPatientId').value, // מזהה המטופל
+        doctorId: document.getElementById('devDoctorId').value,   // מזהה הרופא (מהמסד)
+        date: activeDateKey,                                      // התאריך שנבחר בלוח
+        time: activeSlotTime,                                     // השעה שנבחרה
+        treatmentType: document.getElementById('treatmentType').value // סוג הטיפול
+    };
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/appointments`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(appointmentData)
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // הצלחה (201 Created)
+            showApiMessage(data.message || 'התור נקבע בהצלחה!', true);
+            setTimeout(() => {
+                closeModal();
+                // הערה: כאן בדרך כלל מרפרשים את הטבלה כדי להראות שהתור נתפס
+            }, 1500);
+        } else {
+            // שגיאה מהשרת (400, 409) - למשל כפילות או נחסם ב-Middleware
+            showApiMessage(data.message || 'אירעה שגיאה בקביעת התור', false);
+        }
+    } catch (error) {
+        console.error('Fetch error:', error);
+        showApiMessage('שגיאת תקשורת. ודאו שהשרת שלכן (localhost:5000) פועל.', false);
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'קבע תור';
+    }
+});
+
+// הפעלה ראשונית של לוח השנה
+renderMonth();
+</script>
+</body>
+</html>

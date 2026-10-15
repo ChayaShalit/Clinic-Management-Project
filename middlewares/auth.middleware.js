@@ -16,9 +16,11 @@ export const auth =async (req,res,next) => {
             return next(error);
         }
         const token = authHeader.split(' ')[1];
-
+        
+        // בודקת שהטוקן הונפק עי השרת שלנו לפי המפתח הסודי ואם כן מחלצת את הפרטים שהוצפנו
         const userData= jwt.verify(token,env.JWT_SECRET_KEY)
 
+        //בודק שהיוזר קים במסד הנתונים
         const userExists = await User.findById(userData.id);
 
         if(!userExists){

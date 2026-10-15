@@ -29,6 +29,7 @@ const userSchema = new Schema(
       type: String,
       required: [true, 'נא להזין סיסמה'],
       minlength: [6, 'סיסמה חייבת להכיל לפחות 6 תווים'],
+      select: false
     },
     profileImage: {
       type: String,
@@ -50,18 +51,17 @@ const userSchema = new Schema(
 
 //פונקצית הצפנת הסיסמא ,
 //  מצפינה את הסיסמא של המשתמש ושומרת בדטהבייס את הסיסמא המוצפנת
-userSchema.pre('save',async function (next){
+userSchema.pre('save',async function (){
     if (!this.isModified('password')) 
-        return next()
+      return;
     try{
-        const salt = await bcrypt.genSalt(env.BCRYPT_ROUNDS);
+        const salt = await bcrypt.genSalt(Number(env.BCRYPT_ROUNDS));
         this.password = await bcrypt.hash(this.password,salt);
-        next()
     }
     catch(error){
       error.status=500
-      error.type='server error',
-        next(error)   
+      error.type='server error'
+      throw error   
     }
 });
 

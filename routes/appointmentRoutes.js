@@ -1,12 +1,13 @@
 import express from 'express';
 import { createAppointment, updateAppointment, deleteAppointment, getDoctorAppointments } from '../controllers/appointmentController.js';
 import { validateAppointmentTime } from '../middlewares/appointment.middleware.js';
+import {auth,authPatient,authDoctor} from '../middlewares/auth.middleware.js'
 
 const router = express.Router();
 
-router.post('/', validateAppointmentTime, createAppointment);
-router.put('/:id', updateAppointment);
-router.delete('/:id', deleteAppointment);
-router.get('/doctor/:doctorId', getDoctorAppointments);
+router.post('/',auth,authPatient, validateAppointmentTime, createAppointment);
+router.put('/:id',auth, updateAppointment);
+router.delete('/:id',auth, deleteAppointment);
+router.get('/doctor/:doctorId',auth,authDoctor, getDoctorAppointments);
 
-export default router;
+export const appointmentrouter = router;

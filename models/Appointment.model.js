@@ -34,7 +34,13 @@ const appointmentSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Doctor',
         required: true
-    }
+    },
+    patientName: {
+        type: String
+    },
+    patientEmail: {
+        type: String
+    },
 });
 
 const Appointment = mongoose.model('Appointment', appointmentSchema);

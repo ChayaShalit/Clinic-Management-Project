@@ -1,0 +1,132 @@
+:root {
+    --primary: #0b5ed7;
+    --primary-dark: #084298;
+    --accent: #14b8a6;
+    --bg: #f4f8fc;
+    --text: #1e293b;
+}
+
+body {
+    font-family: 'Heebo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+.site-header {
+    background: #fff;
+    padding: 0.9rem 0;
+    box-shadow: 0 2px 10px rgba(11, 94, 215, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.brand {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.nav-link-clinic {
+    text-decoration: none;
+    color: var(--text);
+    font-weight: 600;
+    padding-bottom: 0.2rem;
+    border-bottom: 3px solid transparent;
+}
+
+.nav-link-clinic:hover,
+.nav-link-clinic.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+.user-chip {
+    background: #e7f0ff;
+    color: var(--primary-dark);
+    padding: 0.4rem 0.9rem;
+    border-radius: 2rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.hero {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff;
+    padding: 2.5rem 0;
+}
+
+.hero h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+}
+
+.hero p {
+    margin: 0;
+    opacity: 0.9;
+}
+
+.card {
+    border: 0;
+    border-radius: 1rem;
+}
+
+.referal-card {
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.referal-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(11, 94, 215, 0.18);
+}
+
+.referal-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: #e7f0ff;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    margin-bottom: 0.8rem;
+}
+
+.form-control,
+.form-select {
+    border-radius: 0.6rem;
+    padding: 0.65rem 0.9rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.2rem rgba(11, 94, 215, 0.2);
+}
+
+.btn-primary {
+    background: var(--primary);
+    border-color: var(--primary);
+    border-radius: 0.6rem;
+    padding: 0.7rem;
+    font-weight: 600;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+.site-footer {
+    background: #fff;
+    border-top: 1px solid #e2e8f0;
+    padding: 1.2rem 0;
+    margin-top: 3rem;
+    color: #64748b;
+    font-size: 0.9rem;
+}

@@ -1,7 +1,7 @@
 import Referal
 from "../models/Referal.js";
 const createReferal=async(req,res)=>{
-  
+    console.log(req.body);
     try
     {
         const newReferal = await Referal.create({ ...req.body, attachedFile: req.file?req.file.filename:null})
@@ -10,11 +10,14 @@ const createReferal=async(req,res)=>{
     }
     catch(error)
     {
+        if(error.name==='validationError'){
+            return res.status(400).json({message: 'חסר או לא תקין פרטים'})
+        }
         res.status(500).json({message:"error in create referal"})
     }
 };
 const getReferalForPatient=async(req,res)=>{
-    const patientId = req.params.patientId
+    const patientId = req.params.id
     try {
         const referals=await  Referal.find({patientId:patientId})
         res.json(referals)

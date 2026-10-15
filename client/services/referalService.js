@@ -1,0 +1,20 @@
+import { API_URL } from "./config.js";
+export const getReferalsByPatient= async(patientId)=>{
+    const response= await fetch( `${API_URL}/patients/${patientId}/referals`)
+    if(!response.ok)
+        throw new Error('שגיאה בשליפת ההפניות')
+    return await response.json()
+}
+export const markReferalAsRead=async(id)=>{
+    const response=await fetch(`${API_URL}/referals/${id}`,{method:PUT})
+    if(!response.ok)
+        throw new Error('שגיאה בעדכון סטטוס')
+}
+export const createReferal=async(formData)=>{
+    const response=await fetch(`${API_URL}/referals`,{method:'POST',
+        body:formData
+    })
+    if(!response.ok)
+        throw new Error('שגיאה בשליחת הפניה')
+    return await response.json()
+}

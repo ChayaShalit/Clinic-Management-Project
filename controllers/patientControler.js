@@ -1,4 +1,4 @@
-import { Patient } from "../models/Patient.model"
+import { Patient } from "../models/Patient.model.js"
 
 export const getPatientProfile = async (req,res,next)=>{
 

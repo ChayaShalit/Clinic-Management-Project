@@ -45,7 +45,24 @@ export const updateAppointment = async (req, res) => {
     try {
         const { id } = req.params; // שולפים את מזהה התור מתוך הכתובת (URL)
         const { date, time, treatmentType, status } = req.body; // הנתונים החדשים לעדכון
+        const currentAppointment = await Appointment.findById(id);
 
+        if (!currentAppointment) {
+        return res.status(404).json({ message: "התור לא נמצא" });
+            }
+            if (date || time) {
+    const conflict = await Appointment.findOne({
+        _id: { $ne: id },
+        doctorId: currentAppointment.doctorId,
+        date: date || currentAppointment.date,
+        time: time || currentAppointment.time,
+        status: 'confirmed'
+    });
+
+    if (conflict) {
+        return res.status(409).json({ message: "השעה שבחרת כבר תפוסה אצל רופא זה. אנא בחרו זמן אחר." });
+    }
+}
         // מוצאים את התור לפי ה-ID ומעדכנים אותו. {new: true} אומר שיחזיר לנו את הנתונים המעודכנים.
         const updatedAppointment = await Appointment.findByIdAndUpdate(
             id,

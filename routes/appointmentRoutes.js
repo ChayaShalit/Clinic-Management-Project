@@ -6,7 +6,7 @@ import {auth,authPatient,authDoctor} from '../middlewares/auth.middleware.js'
 const router = express.Router();
 
 router.post('/',auth,authPatient, validateAppointmentTime, createAppointment);
-router.put('/:id',auth, updateAppointment);
+router.put('/:id', auth, validateAppointmentTime, updateAppointment);
 router.delete('/:id',auth, deleteAppointment);
 router.get('/doctor/:doctorId',auth,authDoctor, getDoctorAppointments);
 

@@ -1,13 +1,31 @@
 import Doctor from '../models/Doctor.model.js';
+import Appointment from '../models/Appointment.model.js';
 
 export const validateAppointmentTime = async (req, res, next) => {
     try {
-        const { doctorId, date, time } = req.body;
-        
-        if (!date || !time || !doctorId) {
-            return next();
-        }
+       
+        let { doctorId, date, time } = req.body;
 
+// בעדכון (PUT) יש id בכתובת: משלימים את הנתונים החסרים מהתור הקיים
+if (req.params.id) {
+    // אם לא משנים תאריך או שעה (למשל רק סטטוס), אין מה לבדוק
+    if (!date && !time) {
+        return next();
+    }
+
+    const existing = await Appointment.findById(req.params.id);
+    if (!existing) {
+        return res.status(404).json({ message: "התור לא נמצא" });
+    }
+
+    doctorId = doctorId || existing.doctorId;
+    date = date || existing.date;
+    time = time || existing.time;
+}
+
+if (!date || !time || !doctorId) {
+    return next();
+}
         const appointmentDate = new Date(date);
         const dayOfWeekIndex = appointmentDate.getDay();
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];

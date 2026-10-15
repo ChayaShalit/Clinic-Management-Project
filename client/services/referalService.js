@@ -1,4 +1,4 @@
-import { API_URL } from "./config";
+import { API_URL } from "./config.js";
 export const getReferalsByPatient= async(patientId)=>{
     const response= await fetch( `${API_URL}/patients/${patientId}/referals`)
     if(!response.ok)

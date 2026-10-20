@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>התחברות - מערכת ניהול תורים</title>
+  <link rel="stylesheet" href="../css/auth.css">
+</head>
+<body>
+
+<div class="auth-container">
+  <div class="auth-card">
+    <h2>התחברות למערכת</h2>
+    <div class="auth-sub">הזינו את פרטי החשבון שלכם</div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="email">כתובת אימייל</label>
+        <input type="email" id="email" placeholder="name@example.com" required>
+      </div>
+
+      <div class="form-group">
+        <label for="password">סיסמה</label>
+        <input type="password" id="password" placeholder="••••••••" required>
+      </div>
+
+      <div id="apiMessage"></div>
+
+      <button type="submit" class="btn-submit" id="submitBtn">התחבר</button>
+    </form>
+
+    <div class="auth-footer">
+      עדיין אין לכם חשבון? <a href="register.html">הירשמו כאן</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_BASE_URL = 'http://localhost:5000/api';
+  const msgEl = document.getElementById('apiMessage');
+
+  function showApiMessage(msg, isSuccess) {
+      msgEl.textContent = msg;
+      msgEl.className = isSuccess ? 'msg-success' : 'msg-error';
+      msgEl.style.display = 'block';
+  }
+
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'מתחבר...';
+      msgEl.style.display = 'none';
+
+      const loginData = {
+          email: document.getElementById('email').value,
+          password: document.getElementById('password').value
+      };
+
+      try {
+          const response = await fetch(`${API_BASE_URL}/auth/login`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(loginData)
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+              showApiMessage('התחברתם בהצלחה!', true);
+              
+              // שמירת הנתונים ב-localStorage
+              localStorage.setItem('token', data.token);
+              localStorage.setItem('userId', data.userId || data.id);
+              localStorage.setItem('role', data.role);
+
+              setTimeout(() => {
+                  window.location.href = 'index.html'; // מעבר לדף הראשי של לוח השנה
+              }, 1000);
+          } else {
+              showApiMessage(data.message || 'שגיאה בהתחברות', false);
+          }
+      } catch (error) {
+          console.error('Login error:', error);
+          showApiMessage('שגיאת תקשורת מול השרת.', false);
+      } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'התחבר';
+      }
+  });
+</script>
+
+</body>
+</html>

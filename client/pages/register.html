@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>הרשמה - מערכת ניהול תורים</title>
+  <link rel="stylesheet" href="../css/auth.css">
+</head>
+<body>
+
+<div class="auth-container">
+  <div class="auth-card">
+    <h2>יצירת חשבון חדש</h2>
+    <div class="auth-sub">הזינו את הנתונים שלכם להרשמה</div>
+
+    <form id="registerForm">
+      <div class="form-group">
+        <label for="name">שם מלא</label>
+        <input type="text" id="name" placeholder="ישראל ישראלי" required>
+      </div>
+
+      <div class="form-group">
+        <label for="email">כתובת אימייל</label>
+        <input type="email" id="email" placeholder="name@example.com" required>
+      </div>
+
+      <div class="form-group">
+        <label for="password">סיסמה</label>
+        <input type="password" id="password" placeholder="••••••••" required>
+      </div>
+
+      <div class="form-group">
+        <label for="role">סוג משתמש (תפקיד)</label>
+        <select id="role" required>
+            <option value="">— בחרו תפקיד —</option>
+            <option value="patient">מטופל (Patient)</option>
+            <option value="doctor">רופא (Doctor)</option>
+        </select>
+      </div>
+
+      <div id="apiMessage"></div>
+
+      <button type="submit" class="btn-submit" id="submitBtn">הירשם</button>
+    </form>
+
+    <div class="auth-footer">
+      כבר יש לכם חשבון? <a href="login.html">התחברו כאן</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_BASE_URL = 'http://localhost:5000/api';
+  const msgEl = document.getElementById('apiMessage');
+
+  function showApiMessage(msg, isSuccess) {
+      msgEl.textContent = msg;
+      msgEl.className = isSuccess ? 'msg-success' : 'msg-error';
+      msgEl.style.display = 'block';
+  }
+
+  document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'נרשם...';
+      msgEl.style.display = 'none';
+
+      const registerData = {
+          name: document.getElementById('name').value,
+          email: document.getElementById('email').value,
+          password: document.getElementById('password').value,
+          role: document.getElementById('role').value
+      };
+
+      try {
+          const response = await fetch(`${API_BASE_URL}/auth/register`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(registerData)
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+              showApiMessage('ההרשמה בוצעה בהצלחה! מעביר אותך להתחברות...', true);
+              setTimeout(() => {
+                  window.location.href = 'login.html';
+              }, 1500);
+          } else {
+              showApiMessage(data.message || 'שגיאה בתהליך ההרשמה', false);
+          }
+      } catch (error) {
+          console.error('Register error:', error);
+          showApiMessage('שגיאת תקשורת מול השרת.', false);
+      } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'הירשם';
+      }
+  });
+</script>
+
+</body>
+</html>

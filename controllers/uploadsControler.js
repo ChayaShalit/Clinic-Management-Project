@@ -8,7 +8,7 @@ export const UploadProfile = async (req,res,next)=>
 
     const file = req.file
     //אמור להשלח ממידלוואר של אימות  user
-    const {id,name,email} = req.user
+    const {id,role} = req.user
 
     if(!file)
         {

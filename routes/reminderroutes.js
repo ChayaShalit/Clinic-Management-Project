@@ -1,5 +1,5 @@
 import e from "express";
- import { sendAllTomorrowReminders } from "../controllers/reminderController.js";
+ import { getAllTomorrowReminders,sendAllTomorrowReminders } from "../controllers/reminderController.js";
 
  const router = e.Router();
 

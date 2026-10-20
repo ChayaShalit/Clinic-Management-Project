@@ -25,10 +25,6 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 app.use(cors());
-<<<<<<< HEAD
-app.use('/files',express.static('files'))
-app.use('/api', referalRouter)
-=======
 
 app.use ('/appointment/',appointmentrouter)
 
@@ -42,7 +38,6 @@ app.use('/api/patient',patientRouter)
 
 app.use ('/api/',reminderRouter)
 
->>>>>>> 591b071943551af3f51fa90554fa3db9ef487795
 // app.get('/api/health',(req,res)=>{
 //     res.status(200).json({stutus:'ok',message:'השרת עובד בהצלחה'})
 // })

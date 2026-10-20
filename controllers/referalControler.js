@@ -1,5 +1,4 @@
-import Referal
-from "../models/Referal.js";
+import Referal from "../models/Referal.js";
 const createReferal=async(req,res)=>{
     console.log(req.body);
     try

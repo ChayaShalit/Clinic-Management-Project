@@ -54,5 +54,8 @@ const generatePDFReport = async (req, res) => {
     });
     doc.end();
 };
-
-export { getAppointmentsForTomorrow, sendAllTomorrowReminders, generatePDFReport };
+//זמני רק בשביל שהשרת ירוץ
+const getAllTomorrowReminders = (req, res) => {
+    res.status(501).json({ message: "Not implemented yet" });
+};
+export { getAppointmentsForTomorrow, sendAllTomorrowReminders, generatePDFReport ,getAllTomorrowReminders};

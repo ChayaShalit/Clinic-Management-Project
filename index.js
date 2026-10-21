@@ -30,7 +30,7 @@ app.use('/files',express.static('files'))
 app.use('/api', referalRouter)
 
 
-app.use ('/appointment/',appointmentrouter)
+app.use('/api/appointments', appointmentrouter)
 
 app.use ('/api/',doctorRouter)
 

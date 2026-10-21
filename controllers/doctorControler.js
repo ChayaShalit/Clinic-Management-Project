@@ -54,6 +54,17 @@ export const getDoctorProfile = async (req,res,next)=>{
     
 
 }
+export const getDoctors = async (req, res, next) => {
+    try {
+        const doctors = await Doctor.find().populate('userId', 'name')
+        const list = doctors
+            .filter(doctor => doctor.userId)
+            .map(doctor => ({ _id: doctor._id, name: doctor.userId.name }))
+        return res.status(200).json(list)
+    } catch (err) {
+        return next(err)
+    }
+}
 
 
 export {getTodaysAppointments} ;

@@ -1,16 +1,12 @@
 import mongoose from 'mongoose';
 
 const doctorSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: true
-    },
-    email: {
-        type: String,
-        required: true
-    },
-    phone: {
-        type: String
+    // הקישור למשתמש. השם, המייל והטלפון של הרופא נשמרים באוסף users
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'users',
+        required: true,
+        unique: true
     },
     specialty: {
         type: String // תחום התמחות, אם רלוונטי

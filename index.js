@@ -32,6 +32,8 @@ app.use('/api', referalRouter)
 
 app.use ('/appointment/',appointmentrouter)
 
+app.use('/api/appointments', appointmentrouter);
+
 app.use ('/api/',doctorRouter)
 
 app.use('/api/', referalRouter)

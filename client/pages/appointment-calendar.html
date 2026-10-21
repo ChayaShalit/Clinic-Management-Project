@@ -317,19 +317,19 @@
   </header>
 
   <!-- שדות מוסתרים זמניים (היה אמור להגיע מהתחברות המשתמש/רופא) -->
-  <div class="dev-fields">
-      <h4>שדות פיתוח (לצורך בדיקת ה-API)</h4>
+  <details class="dev-fields">
+      <summary style="cursor: pointer; font-weight: 600;">כלי בדיקה (לפתיחה בלחיצה)</summary>
       <div style="display: flex; gap: 10px;">
         <div style="flex: 1;">
             <label style="font-size: 12px;">מזהה רופא מ-MongoDB:</label>
             <input type="text" id="devDoctorId" value="" placeholder="הדביקי ID כאן" style="width: 100%; padding: 4px;">
         </div>
         <div style="flex: 1;">
-            <label style="font-size: 12px;">ת.ז מטופל (לדוגמה):</label>
-            <input type="text" id="devPatientId" value="123456789" style="width: 100%; padding: 4px;">
+            <label style="font-size: 12px;">מזהה מטופל מ-MongoDB (ObjectId):</label>
+            <input type="text" id="devPatientId" value="" placeholder="הדביקי מזהה מטופל" style="width: 100%; padding: 4px;">
         </div>
       </div>
-  </div>
+  </details>
 
   <!-- תצוגת לוח שנה (חודש) -->
   <div id="monthView" class="views active">
@@ -583,6 +583,14 @@ document.getElementById('appointmentForm').addEventListener('submit', async (e) 
     hideApiMessage();
 
     // איסוף הנתונים לפורמט שהפונקציה createAppointment בשרת שלכן מצפה לו
+    const token = localStorage.getItem('token');
+    if (!token) {
+        showApiMessage('צריך להתחבר למערכת לפני קביעת תור', false);
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'קבע תור';
+        return;
+    }
+
     const appointmentData = {
         patientId: document.getElementById('devPatientId').value, // מזהה המטופל
         doctorId: document.getElementById('devDoctorId').value,   // מזהה הרופא (מהמסד)
@@ -595,7 +603,8 @@ document.getElementById('appointmentForm').addEventListener('submit', async (e) 
         const response = await fetch(`${API_BASE_URL}/appointments`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(appointmentData)
         });
@@ -627,3 +636,6 @@ renderMonth();
 </script>
 </body>
 </html>
+<!-- Injection By NetFree -->
+<script src="https://netfree.link/injection-script/note-in-site.js" type="text/javascript" async  id="netfree-note-site" jsondata="%7B%22noteSite%22:%22%D7%9B%D7%93%D7%99%20%D7%A9%D7%94%D7%AA%D7%9E%D7%95%D7%A0%D7%95%D7%AA%20%D7%91%D7%90%D7%AA%D7%A8%20%D7%94%D7%96%D7%94%20%D7%99%D7%97%D7%96%D7%A8%D7%95%20%D7%9E%D7%91%D7%93%D7%99%D7%A7%D7%94%2C%20%D7%99%D7%A9%20%D7%9C%D7%94%D7%92%D7%93%D7%99%D7%A8%20%5C%22%D7%90%D7%A4%D7%A9%D7%A8%20%D7%9C%D7%A1%D7%A0%D7%9F%20%D7%AA%D7%95%D7%9B%D7%9F%20%D7%A9%D7%99%D7%93%D7%95%D7%A2%20%D7%9B%D7%90%D7%99%D7%A9%D7%99%20%D7%90%D7%95%20%D7%A4%D7%A8%D7%98%D7%99%5C%22%20%D7%91%D7%94%D7%92%D7%93%D7%A8%D7%95%D7%AA%20%D7%A1%D7%99%D7%A0%D7%95%D7%9F%20%5B%5B%D7%A6%D7%90%D7%98_AI_%D7%91%D7%A0%D7%98%D7%A4%D7%A8%D7%99%7C%D7%94%D7%99%D7%9B%D7%A0%D7%A1%D7%95%20%D7%9C%D7%9B%D7%90%D7%9F%20%D7%9C%D7%94%D7%A1%D7%91%D7%A8%20%D7%9E%D7%A4%D7%95%D7%A8%D7%98%5D%5D%22%2C%22noteSiteEn%22:%22For%20images%20on%20this%20website%20to%20work%20you%20need%20to%20set%20%5C%22Filter%20content%20that%20is%20known%20as%20personal%20or%20private%5C%22%20%5B%5BAI_Chats_in_NetFree%7CClick%20here%20to%20read%20more%5D%5D%22%7D"></script><script src="//netfree.link/injection-script/go-payment.js" type="text/javascript" async ></script>
+<script src="//netfree.link/injection-script/popup-card-init.js" type="text/javascript" async ></script>

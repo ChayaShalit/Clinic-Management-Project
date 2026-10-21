@@ -21,7 +21,7 @@ export const auth =async (req,res,next) => {
         const userData= jwt.verify(token,env.JWT_SECRET_KEY)
 
         //בודק שהיוזר קים במסד הנתונים
-        const userExists = await User.findById(userData.id);
+        const userExists = await User.findById(userData.userId);
 
         if(!userExists){
             const error =new Error('המשתמש המשויך לטוקן זה אינו קיים במערכת') ;
@@ -30,7 +30,7 @@ export const auth =async (req,res,next) => {
             return next(error);
 
         }
-            req.currentUser = { id: userExists._id, role:userExists.role}
+            req.currentUser = { id:String(userExists._id),  role:userExists.role}
             next()
     }
     

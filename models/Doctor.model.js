@@ -16,10 +16,12 @@ const doctorSchema = new mongoose.Schema({
         
     },
     workStartTime: {
-        type: String,       // שעת הגעה, למשל '08:00'
+        type: String, 
+        default: '08:00'      // שעת הגעה, למשל '08:00'
     },
     workEndTime: {
-        type: String,        // שעת יציאה, למשל '17:00'
+        type: String,
+        default: '17:00'         // שעת יציאה, למשל '17:00'
     },
     dayOff: {
         type: String,

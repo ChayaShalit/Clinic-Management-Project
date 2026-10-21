@@ -7,7 +7,7 @@ const userSchema = new Schema(
   {
     tz:{
         type:String,
-        required:['נא להזין מספר זהות'],
+       required: [true, 'נא להזין מספר זהות'],
         unique:true,
         trim:true,
         maxlength:[9,'אורך מספר זהות עד 9 תוים']

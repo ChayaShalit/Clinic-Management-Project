@@ -1,4 +1,4 @@
-import { registerUserApi } from '../apiService.js';
+import { registerUser } from '../apiService.js';
 
 const msgEl = document.getElementById('apiMessage');
 
@@ -25,13 +25,14 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
 
     try {
         // קריאה לפונקציה המרכזית מהקובץ הראשי (apiService)
-        await registerUserApi(registerData);
+        await registerUser(registerData.name,registerData.email,registerData.password,registerData.role);
 
         // אם הגענו לכאן, סימן שההרשמה הצליחה!
         showApiMessage('ההרשמה בוצעה בהצלחה! מעביר אותך להתחברות...', true);
+
         setTimeout(() => {
-            window.location.href = 'login.html';
-        }, 1500);
+            window.location.href = './pages/login.html';
+        }, 500);
 
     } catch (error) {
         // תפיסת השגיאה (בין אם מהשרת או שגיאת רשת) והצגתה למשתמש

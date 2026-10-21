@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>הרשמה - מערכת ניהול תורים</title>
   <link rel="stylesheet" href="../css/auth.css">
+  <script  type="module"  src="../js/register.js" defer></script>
 </head>
 <body>
 
@@ -50,55 +51,7 @@
 </div>
 
 <script>
-  const API_BASE_URL = 'http://localhost:5000/api';
-  const msgEl = document.getElementById('apiMessage');
 
-  function showApiMessage(msg, isSuccess) {
-      msgEl.textContent = msg;
-      msgEl.className = isSuccess ? 'msg-success' : 'msg-error';
-      msgEl.style.display = 'block';
-  }
-
-  document.getElementById('registerForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const submitBtn = document.getElementById('submitBtn');
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'נרשם...';
-      msgEl.style.display = 'none';
-
-      const registerData = {
-          name: document.getElementById('name').value,
-          email: document.getElementById('email').value,
-          password: document.getElementById('password').value,
-          role: document.getElementById('role').value
-      };
-
-      try {
-          const response = await fetch(`${API_BASE_URL}/auth/register`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(registerData)
-          });
-
-          const data = await response.json();
-
-          if (response.ok) {
-              showApiMessage('ההרשמה בוצעה בהצלחה! מעביר אותך להתחברות...', true);
-              setTimeout(() => {
-                  window.location.href = 'login.html';
-              }, 1500);
-          } else {
-              showApiMessage(data.message || 'שגיאה בתהליך ההרשמה', false);
-          }
-      } catch (error) {
-          console.error('Register error:', error);
-          showApiMessage('שגיאת תקשורת מול השרת.', false);
-      } finally {
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'הירשם';
-      }
-  });
 </script>
 
 </body>

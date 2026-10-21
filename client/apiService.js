@@ -3,7 +3,7 @@ import {API_URL} from './services/config.js'
 export async function loginUser(email, password) {
     try{
         const response = await fetch (`${API_URL}/auth/login`,{
-            method: POST,
+            method: 'POST',
             //מה ששולחים בגוף הבקשה בפורמט json
             headers: {
                 'Content-Type': 'application/json'},
@@ -13,12 +13,13 @@ export async function loginUser(email, password) {
             ,
         });
 
-
+        const data = await response.json()
+        
         if (!response.ok){
             throw new Error(data.message || 'שגיאה בהתחברות');
         }
         
-        const data = await response.json()
+        
 
         return data; // מחזיר את הנתונים (כמו ה-JWT) למסך שקרא לפונקציה
     } 
@@ -29,23 +30,30 @@ export async function loginUser(email, password) {
     }
 } 
 
-export async function registerUser(email,name,password,role){
+export async function registerUser(name,email,password,role){
 
 try{
+    console.log('נכנסת לפונקציה ההרשמה בקובץ הראשי ')
     const response = await fetch(`${API_URL}/auth/register`,{
-        method:POST,
+        
+        method:'POST',
          headers: {
                 'Content-Type': 'application/json'},
             body: 
                 JSON.stringify({email,name,password,role })
             ,
-        });
+        });   
+     console.log('נבנה אוביקט בקשה')
+
+        
+        const data = await response.json()
+         console.log('אוביקט התפך ל json')
+
 
         if(!response.ok){
               throw new Error(data.message || 'שגיאה בהתחברות'); 
         }
 
-        const data = await response.json()
 
         return data;
     }
@@ -58,7 +66,7 @@ try{
 export async function getUserProfile (role,id,token){
     try{
         const response = await fetch(`${API_URL}/${role}/${id}/`,{
-            method:GET,
+            method:'GET',
             headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`

@@ -4,19 +4,23 @@ import { User } from "../models/User.model.js";
 import{createToken} from "../services/jwt.services.js"
 
 export const register =async (req,res,next) => {
+
     console.log('you are in register function')
 try{
-    const {tz,name,email,password,profileImage,phone,role} =req.body
 
-    if (role === 'patient'){
-        const { dateBirth } = req.body; 
-            if (!dateBirth) {
-            const error =new Error('שדה תאריך לידה הוא חובה עבור מטופל') ;
-            error.status= 400;
-            error.type='auth error';
-            return next(error);
-            }   
-        }
+    const {tz,name,email,password} =req.body
+
+    const role = req.body.role === 'doctor' ? 'doctor' : 'patient'
+
+    // if (role === 'patient'){
+    //     const { dateBirth } = req.body; 
+    //         if (!dateBirth) {
+    //         const error =new Error('שדה תאריך לידה הוא חובה עבור מטופל') ;
+    //         error.status= 400;
+    //         error.type='auth error';
+    //         return next(error);
+    //         }   
+    //     }
 
     // בדיקה האם המשתמש כבר קיים לפי האימייל
     const existingUser = await User.findOne({ email });
@@ -38,23 +42,23 @@ try{
         role
     });
     
-    if(role == 'patient'){
+    if(role === 'patient'){
         await Patient.create({
             userId: newUser._id,
-            dateBirth:req.body.dateBirth
+            // dateBirth:req.body.dateBirth
         });
     }
 
-    else{
-        const {specialty,appointmentDuration,workStartTime,workEndTime,dayOff,breaks}=req.body
+    else {
+    //  const {specialty,appointmentDuration,workStartTime,workEndTime,dayOff,breaks}=req.body 
         await Doctor.create({
             userId: newUser._id,
-            specialty,
-            appointmentDuration,
-            workStartTime,
-            workEndTime,
-            dayOff,
-            breaks
+            // specialty,
+            // appointmentDuration,
+            // workStartTime,
+            // workEndTime,
+            // dayOff,
+            // breaks
         });
     }
 

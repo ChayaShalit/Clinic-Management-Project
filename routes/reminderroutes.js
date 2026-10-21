@@ -3,6 +3,6 @@ import e from "express";
 
  const router = e.Router();
 
- router.get('/tomorrow-reminders',getAppointmentsForTomorrow);
+router.get('/tomorrow-reminders', sendAllTomorrowReminders);
  
  export const reminderRouter= router;

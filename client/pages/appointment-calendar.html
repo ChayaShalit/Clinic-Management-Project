@@ -408,7 +408,7 @@ let activeDateKey = null; // ישמור תאריך בפורמט YYYY-MM-DD
 let activeSlotTime = null; // ישמור שעה בפורמט HH:MM
 
 // שרת ה-API שלכן (יש לוודא שהשרת רץ)
-const API_BASE_URL = 'http://localhost:5000/api';
+   const API_BASE_URL = 'http://localhost:3000/api';
 
 // פונקציית עזר ליצירת פורמט תאריך YYYY-MM-DD (הפורמט שהשרת שלכן מצפה לקבל)
 function formatDateForApi(d) {
@@ -615,7 +615,7 @@ document.getElementById('appointmentForm').addEventListener('submit', async (e) 
         }
     } catch (error) {
         console.error('Fetch error:', error);
-        showApiMessage('שגיאת תקשורת. ודאו שהשרת שלכן (localhost:5000) פועל.', false);
+        showApiMessage('שגיאת תקשורת. ודאו שהשרת שלכן (localhost:3000) פועל.', false);
     } finally {
         saveBtn.disabled = false;
         saveBtn.textContent = 'קבע תור';

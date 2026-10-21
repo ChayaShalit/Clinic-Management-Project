@@ -1,16 +1,37 @@
 
 
 //טיפול בשגיאות 
-export const errorHandler = (err,req,res,next) => {
-    const {status=500,type='server error'}=err;
+// export const errorHandler = (err,req,res,next) => {
+//     const {status=500,type='server error'}=err;
 
-    const errorObject = {
-        type: type,
-        message: err.message,
-        stack:err.stack       
-    }
+//     const errorObject = {
+//         type: type,
+//         message: err.message,
+//         stack:err.stack       
+//     }
 
     
-    console.error(`ERROR STACK: ${errorObject.stack} `)
-    res.status(status).json ({error:errorObject})
-}
+//     console.error(`ERROR STACK: ${errorObject.stack} `)
+//     res.status(status).json ({error:errorObject})
+// }
+
+import { env } from '../config/env.js';
+
+export const errorHandler = (err, req, res, next) => {
+    let { status = 500, type = 'server error', message } = err;
+
+    if (err.name === 'CastError') {//מזהה שאינו ObjectId תקין
+        status = 400; type = 'validation error'; message = 'מזהה לא תקין';
+    }
+    if (err.code === 11000) {// אם מנסים להכניס ערך שכבר קיים 
+        status = 409; type = 'duplicate error'; message = 'הערך כבר קיים במערכת';
+    }
+    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+        status = 401; type = 'token error'; message = 'טוקן לא תקין או שפג תוקפו';
+    }
+
+    console.error(err.stack);
+    res.status(status).json({
+        error: { type, message, ...(env.NODE_ENV !== 'production' && { stack: err.stack }) }//נשלח ללקוח רק כשלא בפרודקשן. כך לא חושפים פרטים פנימיים כשהאתר באוויר.
+    });
+};

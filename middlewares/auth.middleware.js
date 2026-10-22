@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken"
 import {env} from '../config/env.js'
 import { User } from "../models/User.model.js"; 
+import { AppError } from "../utils/AppError.js";
 
 //לשימוש בנתיבים מוגנים כגון: צפייה בפרופיל האישי, קביעת תור, או צפייה בהפניות רפואיות
 
@@ -24,10 +25,11 @@ export const auth =async (req,res,next) => {
         const userExists = await User.findById(userData.userId);
 
         if(!userExists){
-            const error =new Error('המשתמש המשויך לטוקן זה אינו קיים במערכת') ;
-            error.status= 401;
-            error.type='auth error';
-            return next(error);
+            throw new AppError('המשתמש המשויך לטוקן זה אינו קיים במערכת','401','auth error')
+            // const error =new Error('המשתמש המשויך לטוקן זה אינו קיים במערכת') ;
+            // error.status= 401;
+            // error.type='auth error';
+            // return next(error);
 
         }
             req.currentUser = { id:String(userExists._id),  role:userExists.role}

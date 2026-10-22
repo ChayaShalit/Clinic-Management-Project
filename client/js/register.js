@@ -25,13 +25,13 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
 
     try {
         // קריאה לפונקציה המרכזית מהקובץ הראשי (apiService)
-        await registerUser(registerData.name,registerData.email,registerData.password,registerData.role);
+        await registerUser(registerData);
 
         // אם הגענו לכאן, סימן שההרשמה הצליחה!
         showApiMessage('ההרשמה בוצעה בהצלחה! מעביר אותך להתחברות...', true);
 
         setTimeout(() => {
-            window.location.href = './pages/login.html';
+            window.location.href = 'login.html';
         }, 500);
 
     } catch (error) {

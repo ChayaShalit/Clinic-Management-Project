@@ -37,7 +37,7 @@ const userSchema = new Schema(
     },
     phone: {
       type: String,
-      required: [ 'נא להזין מספר טלפון'],
+     // required: [ 'נא להזין מספר טלפון'],
       trim: true,
     },
     role: {

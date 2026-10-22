@@ -30,7 +30,7 @@ export async function loginUser(email, password) {
     }
 } 
 
-export async function registerUser(name,email,password,role){
+export async function registerUser(registerData) {
 
 try{
     console.log('נכנסת לפונקציה ההרשמה בקובץ הראשי ')
@@ -40,7 +40,7 @@ try{
          headers: {
                 'Content-Type': 'application/json'},
             body: 
-                JSON.stringify({email,name,password,role })
+                JSON.stringify(registerData)
             ,
         });   
      console.log('נבנה אוביקט בקשה')
@@ -51,7 +51,7 @@ try{
 
 
         if(!response.ok){
-              throw new Error(data.message || 'שגיאה בהתחברות'); 
+            throw new Error(data.error?.message || 'שגיאה בהרשמה');
         }
 
 

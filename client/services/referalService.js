@@ -6,7 +6,7 @@ export const getReferalsByPatient= async(patientId)=>{
     return await response.json()
 }
 export const markReferalAsRead=async(id)=>{
-    const response=await fetch(`${API_URL}/referals/${id}`,{method:PUT})
+    const response=await fetch(`${API_URL}/referals/${id}`,{method:'PUT'})
     if(!response.ok)
         throw new Error('שגיאה בעדכון סטטוס')
 }

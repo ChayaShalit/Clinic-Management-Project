@@ -6,6 +6,7 @@ form.addEventListener('submit',async(e)=>{
     try {
         const response = await fetch('http://localhost:3000/api/referals', {
             method: 'POST',
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
             body: formData
         })
         if (!response.ok) {

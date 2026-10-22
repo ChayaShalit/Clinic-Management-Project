@@ -600,12 +600,12 @@ document.getElementById('appointmentForm').addEventListener('submit', async (e) 
     };
 
     try {
-        const response = await fetch(`${API_BASE_URL}/appointments`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
+     const response = await fetch(`${API_BASE_URL}/appointments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
             body: JSON.stringify(appointmentData)
         });
 

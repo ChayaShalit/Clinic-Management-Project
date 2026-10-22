@@ -5,8 +5,8 @@ const doctorSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'users',
         required: true,
-        unique: true
-    },
+        unique: true},
+    // הקישור למשתמש. השם, המייל והטלפון של הרופא נשמרים באוסף users
 
     specialty: {
         type: String// תחום התמחות, אם רלוונטי

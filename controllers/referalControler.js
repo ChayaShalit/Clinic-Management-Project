@@ -1,18 +1,31 @@
-import Referal from "../models/Referal.js";
-const createReferal=async(req,res)=>{
-    console.log(req.body);
-    try
-    {
-        const newReferal = await Referal.create({ ...req.body, attachedFile: req.file?req.file.filename:null})
-        res.json(newReferal)
-        
-    }
-    catch(error)
-    {
-        if(error.name==='validationError'){
-            return res.status(400).json({message: 'חסר או לא תקין פרטים'})
+import Referal
+from "../models/Referal.js";
+import { User } from "../models/User.model.js";
+import Doctor from "../models/Doctor.model.js";
+const createReferal = async (req, res) => {
+    try {
+        const doctor = await Doctor.findOne({ userId: req.currentUser.id });
+        if (!doctor) {
+            return res.status(403).json({ message: 'לא נמצאה רשומת רופא למשתמש המחובר' });
         }
-        res.status(500).json({message:"error in create referal"})
+
+        const patientUser = await User.findOne({ tz: req.body.patientTz, role: 'patient' });
+        if (!patientUser) {
+            return res.status(404).json({ message: 'לא נמצא מטופל עם תעודת הזהות הזו' });
+        }
+
+        const newReferal = await Referal.create({
+            ...req.body,
+            doctorId: doctor._id,
+            patientId: patientUser._id,
+            attachedFile: req.file ? req.file.filename : null
+        });
+        res.json(newReferal);
+    } catch (error) {
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ message: 'חסר או לא תקין פרטים' });
+        }
+        res.status(500).json({ message: 'error in create referal' });
     }
 };
 /**

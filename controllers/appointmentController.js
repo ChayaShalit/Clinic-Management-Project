@@ -1,15 +1,23 @@
 import Appointment from '../models/Appointment.model.js';
 import { Patient } from '../models/Patient.model.js';
+import { User } from '../models/User.model.js';
 import PDFDocument from 'pdfkit';
 import Doctor from '../models/Doctor.model.js';
 import fs from 'node:fs';
+// המטופלת נקבעת לפי ההתחברות (הטוקן), והרופא נבחר מהרשימה
 export const createAppointment = async (req, res) => {
     try {
-        const { patientId, doctorId, date, time, treatmentType } = req.body;
+        const { doctorId, date, time, treatmentType, wantsReminder } = req.body;
 
-        if (!patientId || !doctorId || !date || !time) {
-            return res.status(400).json({ message: "אנא ודאו שכל שדות החובה מלאים (מטופל, רופא, תאריך ושעה)" });
+        if (!doctorId || !date || !time) {
+            return res.status(400).json({ message: "אנא בחרו רופא, תאריך ושעה" });
         }
+
+        const patient = await Patient.findOne({ userId: req.currentUser.id });
+        if (!patient) {
+            return res.status(404).json({ message: "לא נמצאה רשומת מטופל למשתמש המחובר" });
+        }
+        const user = await User.findById(req.currentUser.id);
 
         const existingAppointment = await Appointment.findOne({
             doctorId: doctorId,
@@ -23,11 +31,14 @@ export const createAppointment = async (req, res) => {
         }
 
         const newAppointment = new Appointment({
-            patientId,
+            patientId: patient._id,
             doctorId,
             date,
             time,
-            treatmentType
+            treatmentType,
+            wantsReminder: wantsReminder === true,
+            patientName: user.name,
+            patientEmail: user.email
         });
 
         await newAppointment.save();
@@ -51,21 +62,21 @@ export const updateAppointment = async (req, res) => {
         const currentAppointment = await Appointment.findById(id);
 
         if (!currentAppointment) {
-        return res.status(404).json({ message: "התור לא נמצא" });
-            }
-            if (date || time) {
-    const conflict = await Appointment.findOne({
-        _id: { $ne: id },
-        doctorId: currentAppointment.doctorId,
-        date: date || currentAppointment.date,
-        time: time || currentAppointment.time,
-        status: 'confirmed'
-    });
+            return res.status(404).json({ message: "התור לא נמצא" });
+        }
+        if (date || time) {
+            const conflict = await Appointment.findOne({
+                _id: { $ne: id },
+                doctorId: currentAppointment.doctorId,
+                date: date || currentAppointment.date,
+                time: time || currentAppointment.time,
+                status: 'confirmed'
+            });
 
-    if (conflict) {
-        return res.status(409).json({ message: "השעה שבחרת כבר תפוסה אצל רופא זה. אנא בחרו זמן אחר." });
-    }
-}
+            if (conflict) {
+                return res.status(409).json({ message: "השעה שבחרת כבר תפוסה אצל רופא זה. אנא בחרו זמן אחר." });
+            }
+        }
         // מוצאים את התור לפי ה-ID ומעדכנים אותו. {new: true} אומר שיחזיר לנו את הנתונים המעודכנים.
         const updatedAppointment = await Appointment.findByIdAndUpdate(
             id,
@@ -107,7 +118,7 @@ export const deleteAppointment = async (req, res) => {
 export const getDoctorAppointments = async (req, res) => {
     try {
         const { doctorId } = req.params;
-        
+
         // שולפים מהמסד את כל התורים של הרופא וממיינים אותם לפי השעה (1 = סדר עולה)
         const appointments = await Appointment.find({ doctorId }).sort({ time: 1 });
 
@@ -138,7 +149,7 @@ export const getMyAppointments = async (req, res) => {
             patientId: patient._id
         })
             .populate({ path: 'doctorId', populate: { path: 'userId', select: 'name' } })
-        .sort({ date: 1, time: 1 });
+            .sort({ date: 1, time: 1 });
 
         res.status(200).json({ appointments });
 
@@ -164,14 +175,14 @@ export const getMyDoctorAppointments = async (req, res) => {
         const appointments = await Appointment.find({
             doctorId: doctor._id
         })
-        .populate({
-            path: 'patientId',
-            populate: {
-                path: 'userId',
-                select: 'name'
-            }
-        })
-        .sort({ date: 1, time: 1 });
+            .populate({
+                path: 'patientId',
+                populate: {
+                    path: 'userId',
+                    select: 'name'
+                }
+            })
+            .sort({ date: 1, time: 1 });
 
         return res.status(200).json({ appointments });
 
@@ -208,14 +219,14 @@ export const downloadTodayAppointmentsPDF = async (req, res) => {
             date: { $gte: start, $lte: end },
             status: { $ne: 'cancelled' }
         })
-        .populate({
-            path: 'patientId',
-            populate: {
-                path: 'userId',
-                select: 'name'
-            }
-        })
-        .sort({ time: 1 });
+            .populate({
+                path: 'patientId',
+                populate: {
+                    path: 'userId',
+                    select: 'name'
+                }
+            })
+            .sort({ time: 1 });
 
         // משתמשים בגופן עברי שקיים ב-Windows
         const fontPath = 'C:/Windows/Fonts/arial.ttf';

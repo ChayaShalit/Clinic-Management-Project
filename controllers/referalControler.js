@@ -15,6 +15,14 @@ const createReferal=async(req,res)=>{
         res.status(500).json({message:"error in create referal"})
     }
 };
+/**
+ * 
+ הפונקציה מנסה ליצור הפניה כך שקובץ הוא לא חובה 
+ ומחזירה כתגובה את ההפניה החדשה שנוצרה.
+ אם הוא לא מצליח ליצור הפניה חדשה
+ אם הוא נפל בשגיאה של פרטים מחזיר סטטוס 400
+ אחרת סטטוס 500 שזה שרת
+ */
 const getReferalForPatient=async(req,res)=>{
     const patientId = req.params.id
     try {
@@ -25,6 +33,12 @@ const getReferalForPatient=async(req,res)=>{
         res.status(500).json({message:"error in ID"})
     }
 }
+/**
+ הפונקציה מחזירה לפציינט את ההפניות שלו על ידי התחברות למונוגו 
+ ששם היא מחפשת לפי ID של מוטופל 
+ ומחזירה כתגבה את כל ההפניות
+ אם הוא נפל בשגיאה מוזר 50 שזה שגיאת שרת
+ */
 const markReferalAsRead=async(req ,res)=>{
     const referalId=req.params.referalId
     try{
@@ -36,4 +50,9 @@ const markReferalAsRead=async(req ,res)=>{
         res.status(500).json({message:"error in update referal status"})
     }
 }
+/**
+ * הפונקציה מסמנת שההפניה נקראת 
+ * מתחברת למונוגו ומחפש שם לפי ID ומעדכנתאת השדה של סטטוס להיות נקרא
+ * 
+ */
 export {createReferal,getReferalForPatient,markReferalAsRead}

@@ -25,8 +25,12 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 app.use(cors());
+ 
+app.use('/files',express.static('files'))
 
-app.use ('/appointment/',appointmentrouter)
+// app.use ('/appointment/',appointmentrouter)
+
+app.use('/api/appointments', appointmentrouter);
 
 app.use ('/api/',doctorRouter)
 

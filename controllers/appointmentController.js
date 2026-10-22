@@ -1,5 +1,8 @@
 import Appointment from '../models/Appointment.model.js';
-
+import { Patient } from '../models/Patient.model.js';
+import PDFDocument from 'pdfkit';
+import Doctor from '../models/Doctor.model.js';
+import fs from 'node:fs';
 export const createAppointment = async (req, res) => {
     try {
         const { patientId, doctorId, date, time, treatmentType } = req.body;
@@ -116,5 +119,174 @@ export const getDoctorAppointments = async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "שגיאת שרת בעת שליפת התורים" });
+    }
+};
+
+export const getMyAppointments = async (req, res) => {
+    try {
+        const patient = await Patient.findOne({
+            userId: req.currentUser.id
+        });
+
+        if (!patient) {
+            return res.status(404).json({
+                message: 'מטופל לא נמצא'
+            });
+        }
+
+        const appointments = await Appointment.find({
+            patientId: patient._id
+        })
+        .populate('doctorId')
+        .sort({ date: 1, time: 1 });
+
+        res.status(200).json({ appointments });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: 'שגיאת שרת בעת שליפת התורים'
+        });
+    }
+};
+export const getMyDoctorAppointments = async (req, res) => {
+    try {
+        const doctor = await Doctor.findOne({
+            userId: req.currentUser.id
+        });
+
+        if (!doctor) {
+            return res.status(404).json({
+                message: 'רופא לא נמצא'
+            });
+        }
+
+        const appointments = await Appointment.find({
+            doctorId: doctor._id
+        })
+        .populate({
+            path: 'patientId',
+            populate: {
+                path: 'userId',
+                select: 'name'
+            }
+        })
+        .sort({ date: 1, time: 1 });
+
+        return res.status(200).json({ appointments });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            message: 'שגיאה בשליפת תורי הרופא'
+        });
+    }
+};
+
+export const downloadTodayAppointmentsPDF = async (req, res) => {
+    try {
+        const doctor = await Doctor.findOne({
+            userId: req.currentUser.id
+        });
+
+        if (!doctor) {
+            return res.status(404).json({
+                message: 'רופא לא נמצא'
+            });
+        }
+
+        const now = new Date();
+
+        const start = new Date(now);
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(now);
+        end.setHours(23, 59, 59, 999);
+
+        const appointments = await Appointment.find({
+            doctorId: doctor._id,
+            date: { $gte: start, $lte: end },
+            status: { $ne: 'cancelled' }
+        })
+        .populate({
+            path: 'patientId',
+            populate: {
+                path: 'userId',
+                select: 'name'
+            }
+        })
+        .sort({ time: 1 });
+
+        // משתמשים בגופן עברי שקיים ב-Windows
+        const fontPath = 'C:/Windows/Fonts/arial.ttf';
+
+        if (!fs.existsSync(fontPath)) {
+            return res.status(500).json({
+                message: 'לא נמצא גופן עברי ליצירת PDF'
+            });
+        }
+
+        const doc = new PDFDocument({
+            size: 'A4',
+            margin: 50
+        });
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader(
+            'Content-Disposition',
+            'attachment; filename="today-appointments.pdf"'
+        );
+
+        doc.pipe(res);
+        doc.font(fontPath);
+
+        doc.fontSize(20).text('תורים להיום', {
+            align: 'right'
+        });
+
+        doc.moveDown();
+
+        doc.fontSize(12).text(
+            now.toLocaleDateString('he-IL'),
+            { align: 'right' }
+        );
+
+        doc.moveDown();
+
+        if (appointments.length === 0) {
+            doc.text('אין תורים להיום', {
+                align: 'right'
+            });
+        } else {
+            appointments.forEach((appointment, index) => {
+                const patientName =
+                    appointment.patientId?.userId?.name || 'לא ידוע';
+
+                doc.fontSize(12).text(
+                    `${index + 1}. ${appointment.time} | ${patientName}`,
+                    { align: 'right' }
+                );
+
+                doc.text(
+                    `סוג טיפול: ${appointment.treatmentType || 'לא צוין'}`,
+                    { align: 'right' }
+                );
+
+                doc.moveDown();
+            });
+        }
+
+        doc.end();
+
+    } catch (error) {
+        console.error('PDF error:', error);
+
+        if (!res.headersSent) {
+            return res.status(500).json({
+                message: 'שגיאה ביצירת PDF'
+            });
+        }
+
+        res.destroy(error);
     }
 };

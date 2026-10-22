@@ -16,6 +16,11 @@ const getTodaysAppointments = async (doctorId) => {
     return appointments;
 };
 
+//הפונקציה מקבלת את כל המטופלים של הרופא להיום
+//לפי זמן התחלת יום וזמן סיום היום
+//מחפש בתורים לפי ID של הרופא את המטופלים שונים להגדרה זהו
+//בודק עם $gte גדול או שווה זמן התחלה
+// בודק עם lte קטן או שווה שזה זמן סיום התור
 export const getDoctorProfile = async (req,res,next)=>{
     
         try{

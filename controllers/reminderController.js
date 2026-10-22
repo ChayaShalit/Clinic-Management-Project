@@ -26,6 +26,11 @@ const sendReminderEmail = async (appointment) => {
     };
     await transporter.sendMail(mail);
 };
+/**
+ *הפוונקציה שולחת מייל
+ * בפונקציה מגדירים אוביקט שבו יש את כתובת השולח ולאיפה לשלוח על ידי הכתובת שמגיעה מהמטופל
+ * הנושא זה מה שיהיה כתוב בשורה השאונה של המייל 
+ */
 
 const sendAllTomorrowReminders = async () => {
     const appointments = await getAppointmentsForTomorrow();
@@ -39,7 +44,14 @@ const sendAllTomorrowReminders = async () => {
         }
     }));
 };
-
+/**
+הפונקציה שולחת מייל לכל התורים שמחר 
+על ידי הפעלת הפונקציה שמחזירה את כל התורים שמחר ומכניסה בתוך משתנה 
+הפורמיס אומר תחכה עד שכולם ישלחו 
+הפורמיס הוא המבטיח לזה 
+כלומר לכל מטופל נוצר מערך ממהמאפ שמנסים לשלוח לו מייל 
+הפורמיס אול אומר לשלוח לכלום בייחד רק  אחרי שהפעולה הזו נגמרה אפשר לעבור הלאה 
+ */
 const generatePDFReport = async (req, res) => {
     const appointments = await getAppointmentsForTomorrow();
     const doc = new PDFDocument();

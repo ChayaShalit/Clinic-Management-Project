@@ -1,158 +1,373 @@
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap');
+
 :root {
-  --primary-blue: #1e40af;
-  --primary-hover: #1e3a8a;
-  --bg-main: #f1f5f9;
-  --text-dark: #1e293b;
-  --text-muted: #64748b;
-  --card-bg: #ffffff;
-  --border-color: #cbd5e1;
-  --success: #16a34a;
-  --success-bg: #f0fdf4;
-  --danger: #dc2626;
-  --danger-bg: #fef2f2;
+  --navy-900: #070a3f;
+  --navy-800: #0c1169;
+  --indigo: #1a2aa6;
+  --blue: #2d9fe3;
+  --orange: #f7941d;
+  --orange-dark: #ee6a1b;
+  --primary-blue: var(--blue);
+  --text-dark: #1b2236;
+  --text-muted: #667085;
+  --success: #16803c;
+  --success-bg: #effaf3;
+  --danger: #c62828;
+  --danger-bg: #fdeeee;
 }
 
-* { 
-  box-sizing: border-box; 
+* {
+  box-sizing: border-box;
 }
 
+/* ---------- פריסה מפוצלת: טופס מימין, פאנל פרסומי משמאל ---------- */
 body {
   direction: rtl;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Heebo', system-ui, sans-serif;
   margin: 0;
-  background: var(--bg-main);
+  background: #fbfbfd;
   color: var(--text-dark);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   min-height: 100vh;
-  padding: 20px 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, .85fr);
+  -webkit-font-smoothing: antialiased;
 }
 
 .auth-container {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
+  justify-self: center;
   width: 100%;
-  max-width: 440px;
-  padding: 20px;
+  max-width: 540px;
+  padding: 2.5rem 1.5rem;
+}
+
+/* לוגו ושם מעל הכרטיס */
+.auth-container::before {
+  content: "מרפאה דיגיטלית";
+  display: block;
+  text-align: center;
+  font-weight: 800;
+  font-size: 1.75rem;
+  color: var(--navy-800);
+  padding-top: 66px;
+  margin-bottom: 1.6rem;
+  background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2064%2064%27%3E%0A%3Cdefs%3E%3ClinearGradient%20id%3D%27g%27%20x1%3D%270%27%20y1%3D%270%27%20x2%3D%271%27%20y2%3D%271%27%3E%3Cstop%20offset%3D%270%27%20stop-color%3D%27%233aa9ef%27%2F%3E%3Cstop%20offset%3D%271%27%20stop-color%3D%27%231a2aa6%27%2F%3E%3C%2FlinearGradient%3E%0A%3ClinearGradient%20id%3D%27o%27%20x1%3D%270%27%20y1%3D%270%27%20x2%3D%271%27%20y2%3D%271%27%3E%3Cstop%20offset%3D%270%27%20stop-color%3D%27%23fbb040%27%2F%3E%3Cstop%20offset%3D%271%27%20stop-color%3D%27%23ee6a1b%27%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%0A%3Ccircle%20cx%3D%2732%27%20cy%3D%2732%27%20r%3D%2730%27%20fill%3D%27url%28%23g%29%27%2F%3E%0A%3Cpath%20d%3D%27M27%2015h10a2%202%200%200%201%202%202v8h8a2%202%200%200%201%202%202v10a2%202%200%200%201-2%202h-8v8a2%202%200%200%201-2%202H27a2%202%200%200%201-2-2v-8h-8a2%202%200%200%201-2-2V27a2%202%200%200%201%202-2h8v-8a2%202%200%200%201%202-2z%27%20fill%3D%27white%27%2F%3E%0A%3Ccircle%20cx%3D%2750%27%20cy%3D%2713%27%20r%3D%277%27%20fill%3D%27url%28%23o%29%27%20stroke%3D%27white%27%20stroke-width%3D%272.5%27%2F%3E%3C%2Fsvg%3E") top center / 54px no-repeat;
 }
 
 .auth-card {
-  background: var(--card-bg);
-  border-radius: 20px;
-  padding: 32px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-  animation: fadeIn 0.3s ease;
+  background: #f1f2f5;
+  border-radius: 28px;
+  padding: 2.2rem 2rem 2rem;
+  animation: fadeIn .4s ease;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .auth-card h2 {
-  margin: 0 0 8px;
-  font-size: 24px;
-  color: var(--primary-blue);
+  margin: 0 0 .4rem;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-dark);
   text-align: center;
 }
 
 .auth-sub {
-  font-size: 14px;
+  font-size: .95rem;
   color: var(--text-muted);
-  margin-bottom: 24px;
+  margin-bottom: 1.6rem;
   text-align: center;
-  font-weight: 500;
 }
 
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: 1.1rem;
 }
 
 label {
   display: block;
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 8px;
+  font-size: .85rem;
+  font-weight: 700;
+  margin-bottom: .2rem;
   color: var(--text-dark);
 }
 
-input, select {
+/* שדות בסגנון קו תחתון */
+input,
+select {
   width: 100%;
-  padding: 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  font-size: 15px;
+  padding: .7rem 0;
+  border: 0;
+  border-bottom: 1.5px solid #aab4c6;
+  border-radius: 0;
+  font-size: 1rem;
   font-family: inherit;
-  background: #f8fafc;
-  transition: border-color 0.2s, background 0.2s;
+  background: transparent;
+  color: var(--text-dark);
+  transition: border-color .2s, box-shadow .2s;
 }
 
-input:focus, select:focus {
+input::placeholder {
+  color: #98a2b3;
+}
+
+input:focus,
+select:focus {
   outline: none;
-  border-color: var(--primary-blue);
-  background: white;
+  border-bottom-color: var(--blue);
+  box-shadow: 0 2px 0 0 var(--blue);
 }
 
 .btn-submit {
   width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: 600;
+  padding: .9rem;
+  border-radius: 999px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
   border: none;
-  background: var(--primary-blue);
-  color: white;
-  transition: background 0.2s, opacity 0.2s;
-  margin-top: 12px;
+  background: linear-gradient(180deg, #46b6f6 0%, #2a95dc 100%);
+  color: #fff;
+  margin-top: 1rem;
+  box-shadow: 0 12px 24px rgba(42, 149, 220, .35);
+  transition: transform .2s, box-shadow .2s, filter .2s;
 }
 
 .btn-submit:hover {
-  background: var(--primary-hover);
+  transform: translateY(-2px);
+  filter: brightness(.96);
+  box-shadow: 0 16px 28px rgba(42, 149, 220, .45);
+}
+
+.btn-submit:focus-visible {
+  outline: 3px solid var(--orange);
+  outline-offset: 3px;
 }
 
 .btn-submit:disabled {
-  opacity: 0.7;
+  opacity: .7;
   cursor: not-allowed;
+  transform: none;
 }
 
 .auth-footer {
   text-align: center;
-  margin-top: 20px;
-  font-size: 14px;
+  margin-top: 1.4rem;
+  font-size: .95rem;
   color: var(--text-muted);
 }
 
 .auth-footer a {
-  color: var(--primary-blue);
-  text-decoration: none;
-  font-weight: 600;
+  color: var(--blue);
+  text-decoration: underline;
+  font-weight: 700;
 }
 
 .auth-footer a:hover {
-  text-decoration: underline;
+  color: var(--indigo);
 }
 
 #apiMessage {
-  margin-top: 16px;
-  padding: 12px;
-  border-radius: 8px;
-  font-size: 14px;
+  margin-top: 1rem;
+  padding: .75rem 1rem;
+  border-radius: 14px;
+  font-size: .92rem;
   text-align: center;
   display: none;
 }
 
-.msg-success { 
-  background: var(--success-bg); 
-  color: var(--success); 
-  border: 1px solid #bbf7d0; 
+.msg-success {
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid #bfe8cd;
 }
 
-.msg-error { 
-  background: var(--danger-bg); 
-  color: var(--danger); 
-  border: 1px solid #fecaca; 
+.msg-error {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid #f5c6c6;
 }
 
-.hidden{
-  display: none;
+/* קישור אופציונלי לחזרה לדף הבית: <a class="back-home" href="../index.html">חזרה לדף הראשי</a> */
+.back-home {
+  position: absolute;
+  top: 1.5rem;
+  inset-inline-start: 1.5rem;
+  padding: .55rem 1.3rem;
+  border: 1.5px solid #b4bdcc;
+  border-radius: 999px;
+  color: #4a5568;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: .9rem;
+  background: #fff;
+  z-index: 5;
+}
+
+.back-home:hover {
+  background: var(--navy-800);
+  color: #fff;
+  border-color: var(--navy-800);
+}
+
+/* ---------- פאנל פרסומי (עמוד התחברות) ---------- */
+body::before {
+  content: "הבריאות שלך,\A בקליק אחד.";
+  white-space: pre;
+  grid-column: 2;
+  grid-row: 1;
+  display: block;
+  text-align: center;
+  font-size: clamp(1.7rem, 2.6vw, 2.4rem);
+  font-weight: 800;
+  line-height: 1.35;
+  color: var(--navy-800);
+  padding: 360px 2rem 2rem;
+  background:
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20360%20250%27%3E%0A%3Cdefs%3E%0A%3ClinearGradient%20id%3D%27b%27%20x1%3D%270%27%20y1%3D%270%27%20x2%3D%271%27%20y2%3D%271%27%3E%3Cstop%20offset%3D%270%27%20stop-color%3D%27%236fd0ff%27%2F%3E%3Cstop%20offset%3D%271%27%20stop-color%3D%27%232d6fe0%27%2F%3E%3C%2FlinearGradient%3E%0A%3ClinearGradient%20id%3D%27o%27%20x1%3D%270%27%20y1%3D%270%27%20x2%3D%271%27%20y2%3D%271%27%3E%3Cstop%20offset%3D%270%27%20stop-color%3D%27%23fbb040%27%2F%3E%3Cstop%20offset%3D%271%27%20stop-color%3D%27%23ee6a1b%27%2F%3E%3C%2FlinearGradient%3E%0A%3C%2Fdefs%3E%0A%3Cpath%20d%3D%27M40%20120c-8-50%2032-90%2088-92%2058-2%20108%2022%20126%2066%2018%2044-16%20100-84%20108-68%208-122-32-130-82z%27%20fill%3D%27%23bfe6fb%27%20opacity%3D%27.7%27%2F%3E%0A%3Cpath%20d%3D%27M96%20170c-26-26-16-66%2026-88%2042-22%20100-8%20126%2024%2026%2032%208%2080-38%2092-46%2012-88-2-114-28z%27%20fill%3D%27%23101a8c%27%2F%3E%0A%3Ccircle%20cx%3D%2750%27%20cy%3D%2748%27%20r%3D%2714%27%20fill%3D%27none%27%20stroke%3D%27%23f7941d%27%20stroke-width%3D%273%27%2F%3E%0A%3Ccircle%20cx%3D%27318%27%20cy%3D%27158%27%20r%3D%277%27%20fill%3D%27none%27%20stroke%3D%27%23f7941d%27%20stroke-width%3D%273%27%2F%3E%0A%3Crect%20x%3D%27120%27%20y%3D%2710%27%20width%3D%2796%27%20height%3D%27196%27%20rx%3D%2718%27%20fill%3D%27%23fff%27%20stroke%3D%27%23c9d6f5%27%20stroke-width%3D%273%27%2F%3E%0A%3Crect%20x%3D%27128%27%20y%3D%2724%27%20width%3D%2780%27%20height%3D%27170%27%20rx%3D%2710%27%20fill%3D%27%23eaf4ff%27%2F%3E%0A%3Cpath%20d%3D%27M168%2062l34%2012v34c0%2026-16%2040-34%2048-18-8-34-22-34-48V74z%27%20fill%3D%27url%28%23b%29%27%20stroke%3D%27%23cfd9ee%27%20stroke-width%3D%275%27%2F%3E%0A%3Cpath%20d%3D%27M153%20108l11%2011%2021-24%27%20fill%3D%27none%27%20stroke%3D%27%23fff%27%20stroke-width%3D%277%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%2F%3E%0A%3Ccircle%20cx%3D%27252%27%20cy%3D%2792%27%20r%3D%2720%27%20fill%3D%27url%28%23o%29%27%2F%3E%0A%3Cpath%20d%3D%27M244%2092l6%206%2011-12%27%20stroke%3D%27%23fff%27%20stroke-width%3D%275%27%20fill%3D%27none%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%2F%3E%0A%3C%2Fsvg%3E") top 56px center / min(380px, 78%) no-repeat,
+    radial-gradient(circle at 18% 12%, rgba(255, 190, 120, .35), transparent 45%),
+    linear-gradient(180deg, #e9f6ff 0%, #f7fbff 70%, #ffffff 100%);
+}
+
+body::after {
+  content: "קביעת תורים, הפניות מהרופא ותזכורות במייל,\A הכול במקום אחד ובכל שעה.";
+  white-space: pre;
+  grid-column: 2;
+  grid-row: 1;
+  align-self: end;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 500;
+  line-height: 1.7;
+  color: #3b4a7a;
+  padding: 0 2rem 3rem;
+  pointer-events: none;
+}
+
+/* ---------- עמוד הרשמה: פסיפס כחול ושחור-לבן ---------- */
+body:has(#registerForm) {
+  background: linear-gradient(to left, rgba(7, 10, 63, .72) 0%, rgba(7, 10, 63, .45) 45%, rgba(7, 10, 63, .1) 100%), #0a0f5c url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%201350%20900%27%20preserveAspectRatio%3D%27xMidYMid%20slice%27%3E%3Crect%20x%3D%270%27%20y%3D%270%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%23d79b73%27%2F%3E%3Crect%20x%3D%27150%27%20y%3D%270%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%233b3b3b%27%2F%3E%3Crect%20x%3D%27300%27%20y%3D%270%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%23d79b73%27%2F%3E%3Crect%20x%3D%27450%27%20y%3D%270%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%231d3bb8%27%2F%3E%3Crect%20x%3D%27600%27%20y%3D%270%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%23d79b73%27%2F%3E%3Crect%20x%3D%27750%27%20y%3D%270%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%238a4a63%27%2F%3E%3Crect%20x%3D%27900%27%20y%3D%270%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%230d1670%27%2F%3E%3Crect%20x%3D%271050%27%20y%3D%270%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%2316228f%27%2F%3E%3Crect%20x%3D%271200%27%20y%3D%270%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%233b3b3b%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%27150%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%23e2e2e2%27%2F%3E%3Crect%20x%3D%27150%27%20y%3D%27150%27%20width%3D%27300%27%20height%3D%27300%27%20fill%3D%27%232aa7b4%27%2F%3E%3Crect%20x%3D%27450%27%20y%3D%27150%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%23e2e2e2%27%2F%3E%3Crect%20x%3D%27600%27%20y%3D%27150%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%23e2e2e2%27%2F%3E%3Crect%20x%3D%27750%27%20y%3D%27150%27%20width%3D%27300%27%20height%3D%27300%27%20fill%3D%27%230a0f5c%27%2F%3E%3Crect%20x%3D%271050%27%20y%3D%27150%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%230d1670%27%2F%3E%3Crect%20x%3D%271200%27%20y%3D%27150%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%231d3bb8%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%27300%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%238a4a63%27%2F%3E%3Crect%20x%3D%27450%27%20y%3D%27300%27%20width%3D%27300%27%20height%3D%27300%27%20fill%3D%27%23e9b48a%27%2F%3E%3Crect%20x%3D%271050%27%20y%3D%27300%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%238a4a63%27%2F%3E%3Crect%20x%3D%271200%27%20y%3D%27300%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%23d79b73%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%27450%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%232b4fc9%27%2F%3E%3Crect%20x%3D%27150%27%20y%3D%27450%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%23e2e2e2%27%2F%3E%3Crect%20x%3D%27300%27%20y%3D%27450%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%23e2e2e2%27%2F%3E%3Crect%20x%3D%27750%27%20y%3D%27450%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%23d79b73%27%2F%3E%3Crect%20x%3D%27900%27%20y%3D%27450%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%2313296b%27%2F%3E%3Crect%20x%3D%271050%27%20y%3D%27450%27%20width%3D%27300%27%20height%3D%27300%27%20fill%3D%27%232b4fc9%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%27600%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%231d3bb8%27%2F%3E%3Crect%20x%3D%27150%27%20y%3D%27600%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%230a0f5c%27%2F%3E%3Crect%20x%3D%27300%27%20y%3D%27600%27%20width%3D%27300%27%20height%3D%27300%27%20fill%3D%27%233b3b3b%27%2F%3E%3Crect%20x%3D%27600%27%20y%3D%27600%27%20width%3D%27300%27%20height%3D%27300%27%20fill%3D%27%230d1670%27%2F%3E%3Crect%20x%3D%27900%27%20y%3D%27600%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%232aa7b4%27%2F%3E%3Crect%20x%3D%270%27%20y%3D%27750%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%230a0f5c%27%2F%3E%3Crect%20x%3D%27150%27%20y%3D%27750%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%230a0f5c%27%2F%3E%3Crect%20x%3D%27900%27%20y%3D%27750%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%230a0f5c%27%2F%3E%3Crect%20x%3D%271050%27%20y%3D%27750%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%23c4c4c4%27%2F%3E%3Crect%20x%3D%271200%27%20y%3D%27750%27%20width%3D%27150%27%20height%3D%27150%27%20fill%3D%27%230d1670%27%2F%3E%3C%2Fsvg%3E") center / cover no-repeat;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
+  grid-template-rows: 1fr 1fr;
+}
+
+body:has(#registerForm)::before {
+  content: "מרפאה דיגיטלית,";
+  white-space: normal;
+  grid-column: 1;
+  grid-row: 1;
+  align-self: end;
+  text-align: right;
+  font-size: clamp(2.4rem, 6vw, 4.6rem);
+  font-weight: 800;
+  line-height: 1.05;
+  color: #fff;
+  padding: 0 clamp(1.5rem, 6vw, 5rem) 0;
+  background: none;
+  text-shadow: 0 6px 30px rgba(0, 0, 40, .55);
+}
+
+body:has(#registerForm)::after {
+  content: "הבריאות שלך\A בקליק.";
+  white-space: pre;
+  grid-column: 1;
+  grid-row: 2;
+  align-self: start;
+  text-align: right;
+  font-size: clamp(2.4rem, 6vw, 4.6rem);
+  font-weight: 300;
+  line-height: 1.05;
+  color: #fff;
+  padding: 0 clamp(1.5rem, 6vw, 5rem);
+  text-shadow: 0 6px 30px rgba(0, 0, 40, .55);
+}
+
+body:has(#registerForm) .auth-container {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: stretch;
+  justify-self: stretch;
+  max-width: none;
+  background: #fff;
+  border-radius: 0 0 72px 72px;
+  margin: 0 0 6vh;
+  padding: 3rem clamp(1.5rem, 4vw, 3.5rem) 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-shadow: 0 30px 80px rgba(0, 0, 30, .45);
+}
+
+body:has(#registerForm) .auth-card {
+  background: transparent;
+  padding: 0;
+}
+
+body:has(#registerForm) .auth-container::before {
+  margin-bottom: 1.2rem;
+}
+
+/* ---------- מסכים קטנים ---------- */
+@media (max-width: 900px) {
+
+  body,
+  body:has(#registerForm) {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+
+  body::before,
+  body::after {
+    display: none;
+  }
+
+  body:has(#registerForm)::before,
+  body:has(#registerForm)::after {
+    display: none;
+  }
+
+  .auth-container,
+  body:has(#registerForm) .auth-container {
+    grid-column: 1;
+    grid-row: 1;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 2rem 1.2rem;
+    max-width: 560px;
+    justify-self: center;
+    align-self: center;
+  }
+
+  body:has(#registerForm) {
+    background: linear-gradient(160deg, #0a0f5c, #1a2aa6 60%, #2d9fe3);
+  }
+
+  body:has(#registerForm) .auth-container {
+    background: #fff;
+    border-radius: 28px;
+    margin: 1.2rem;
+    width: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }

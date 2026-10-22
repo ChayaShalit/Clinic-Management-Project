@@ -152,3 +152,7 @@ input:focus, select:focus {
   color: var(--danger); 
   border: 1px solid #fecaca; 
 }
+
+.hidden{
+  display: none;
+}

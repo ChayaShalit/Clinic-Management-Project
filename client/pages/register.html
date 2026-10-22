@@ -17,17 +17,17 @@
     <form id="registerForm">
       <div class="form-group">
         <label for="name">שם מלא</label>
-        <input type="text" id="name" placeholder="ישראל ישראלי" required>
+        <input type="text" id="name" name="name" placeholder="ישראל ישראלי" required>
       </div>
 
       <div class="form-group">
         <label for="email">כתובת אימייל</label>
-        <input type="email" id="email" placeholder="name@example.com" required>
+        <input type="email" id="email" name="email" placeholder="name@example.com" required>
       </div>
 
       <div class="form-group">
         <label for="password">סיסמה</label>
-        <input type="password" id="password" placeholder="••••••••" required>
+        <input type="password" id="password" name="password" placeholder="••••••••" required>
       </div>
 
       <div class="form-group">
@@ -38,6 +38,12 @@
             <option value="doctor">רופא (Doctor)</option>
         </select>
       </div>
+
+       <div class="form-group hidden" id="tzContainer">
+        <label for="name">מספר זהות </label>
+        <input type="text" id="tz" name="tz" placeholder="מספר זהות בן 9 ספרות" >
+      </div>
+
 
       <div id="apiMessage"></div>
 

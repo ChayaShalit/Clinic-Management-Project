@@ -39,8 +39,8 @@ const createReferal = async (req, res) => {
 const getReferalForPatient=async(req,res)=>{
     const patientId = req.params.id
     try {
-        const referals=await  Referal.find({patientId:patientId})
-        res.json(referals)
+        const referals = await Referal.find({ patientId: patientId })
+            .populate({ path: 'doctorId', populate: { path: 'userId', select: 'name' } })
     }
     catch(error){
         res.status(500).json({message:"error in ID"})

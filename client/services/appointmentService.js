@@ -1,7 +1,16 @@
-import { API_URL } from './config.js'
+import { API_URL, TOKEN_KEY } from './config.js'
 
-// באיזה מפתח נשמר הטוקן אחרי ההתחברות. לבדוק מול בת 1 שזה אותו שם
-import { TOKEN_KEY } from './config.js'
+const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}` })
+
+export const hasToken = () => Boolean(localStorage.getItem(TOKEN_KEY))
+
+// מחלץ את הודעת השגיאה שהשרת שלח, ושומר את קוד הסטטוס על השגיאה
+const readError = async (response, fallback) => {
+    const data = await response.json().catch(() => ({}))
+    const error = new Error(data.message || data.error?.message || fallback)
+    error.status = response.status
+    return error
+}
 
 export const getMyAppointments = async () => {
     const token = localStorage.getItem(TOKEN_KEY)
@@ -10,7 +19,6 @@ export const getMyAppointments = async () => {
         throw new Error('NO_TOKEN')
     }
 
-    // הנתיב הזה עוד לא קיים בשרת. מוסיפים אותו בשלב הבא
     const response = await fetch(`${API_URL}/appointments/my`, {
         headers: { Authorization: `Bearer ${token}` }
     })
@@ -25,4 +33,31 @@ export const getMyAppointments = async () => {
 
     const data = await response.json()
     return data.appointments || []
+}
+
+// רשימת הרופאים: שם, התמחות, שעות עבודה, יום חופש והפסקות
+export const getDoctors = async () => {
+    const response = await fetch(`${API_URL}/doctors`, { headers: authHeaders() })
+    if (!response.ok) throw await readError(response, 'לא הצלחנו לטעון את רשימת הרופאים')
+    return await response.json()
+}
+
+// השעות התפוסות אצל רופא ביום מסוים (date בפורמט YYYY-MM-DD)
+export const getAvailability = async (doctorId, date) => {
+    const query = new URLSearchParams({ doctorId, date })
+    const response = await fetch(`${API_URL}/appointments/availability?${query}`, { headers: authHeaders() })
+    if (!response.ok) throw await readError(response, 'לא הצלחנו לבדוק זמינות')
+    const data = await response.json()
+    return data.taken || []
+}
+
+// קביעת תור חדש. המטופלת נקבעת בשרת לפי ההתחברות
+export const bookAppointment = async (appointment) => {
+    const response = await fetch(`${API_URL}/appointments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify(appointment)
+    })
+    if (!response.ok) throw await readError(response, 'אירעה שגיאה בקביעת התור')
+    return await response.json()
 }

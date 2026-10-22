@@ -301,3 +301,29 @@ export const downloadTodayAppointmentsPDF = async (req, res) => {
         res.destroy(error);
     }
 };
+
+// השעות התפוסות אצל רופא ביום מסוים, כדי שהמטופלת תראה רק שעות פנויות
+export const getAvailability = async (req, res) => {
+    try {
+        const { doctorId, date } = req.query;
+
+        if (!doctorId || !date) {
+            return res.status(400).json({ message: "חסרים רופא או תאריך" });
+        }
+
+        const appointments = await Appointment.find({
+            doctorId,
+            date,
+            status: 'confirmed'
+        }).select('time');
+
+        res.status(200).json({ taken: appointments.map(a => a.time) });
+
+    } catch (error) {
+        if (error.name === 'CastError') {
+            return res.status(400).json({ message: "מזהה רופא או תאריך לא תקינים" });
+        }
+        console.error(error);
+        res.status(500).json({ message: "שגיאת שרת בבדיקת זמינות" });
+    }
+};

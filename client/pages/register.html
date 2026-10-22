@@ -15,29 +15,37 @@
     <div class="auth-sub">הזינו את הנתונים שלכם להרשמה</div>
 
     <form id="registerForm">
-      <div class="form-group">
-        <label for="name">שם מלא</label>
-        <input type="text" id="name" placeholder="ישראל ישראלי" required>
-      </div>
+    <div class="form-group">
+      <label for="tz">תעודת זהות</label>
+      <input type="text" id="tz" name="tz" placeholder="9 ספרות, לדוגמה: 123456789" inputmode="numeric" pattern="[0-9]{9}"
+        minlength="9" maxlength="9" autocomplete="off" required>
+    </div>
 
-      <div class="form-group">
-        <label for="email">כתובת אימייל</label>
-        <input type="email" id="email" placeholder="name@example.com" required>
-      </div>
+    <div class="form-group">
+      <label for="name">שם מלא</label>
+      <input type="text" id="name" name="name" placeholder="שם פרטי ושם משפחה, לדוגמה: ישראל ישראלי" minlength="2"
+        autocomplete="name" required>
+    </div>
 
-      <div class="form-group">
-        <label for="password">סיסמה</label>
-        <input type="password" id="password" placeholder="••••••••" required>
-      </div>
+    <div class="form-group">
+      <label for="email">כתובת אימייל</label>
+      <input type="email" id="email" name="email" placeholder="לדוגמה: name@example.com" autocomplete="email" required>
+    </div>
 
-      <div class="form-group">
-        <label for="role">סוג משתמש (תפקיד)</label>
-        <select id="role" required>
-            <option value="">— בחרו תפקיד —</option>
-            <option value="patient">מטופל (Patient)</option>
-            <option value="doctor">רופא (Doctor)</option>
-        </select>
-      </div>
+        <div class="form-group">
+          <label for="password">סיסמה</label>
+          <input type="password" id="password" name="password" placeholder="לפחות 6 תווים" minlength="6"
+            autocomplete="new-password" required>
+        </div>
+
+    <div class="form-group">
+      <label for="role">סוג משתמש (תפקיד)</label>
+      <select id="role" name="role" required>
+        <option value="">— בחרו תפקיד —</option>
+        <option value="patient">מטופל/ת</option>
+        <option value="doctor">רופא/ה</option>
+      </select>
+    </div>
 
       <div id="apiMessage"></div>
 

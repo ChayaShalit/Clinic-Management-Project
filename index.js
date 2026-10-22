@@ -27,10 +27,10 @@ app.use(morgan('dev'));
 app.use(cors());
  
 app.use('/files',express.static('files'))
-app.use('/api', referalRouter)
 
+// app.use ('/appointment/',appointmentrouter)
 
-app.use('/api/appointments', appointmentrouter)
+app.use ('/appointment/',appointmentrouter)
 
 app.use ('/api/',doctorRouter)
 
@@ -41,7 +41,6 @@ app.use('/api/auth',authRouter)
 app.use('/api/patient',patientRouter)
 
 app.use ('/api/',reminderRouter)
-
 
 // app.get('/api/health',(req,res)=>{
 //     res.status(200).json({stutus:'ok',message:'השרת עובד בהצלחה'})

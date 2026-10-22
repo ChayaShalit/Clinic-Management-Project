@@ -30,7 +30,7 @@ export const auth =async (req,res,next) => {
             return next(error);
 
         }
-            req.currentUser = { id: userExists._id, role:userExists.role}
+            req.currentUser = { id:String(userExists._id),  role:userExists.role}
             next()
     }
     

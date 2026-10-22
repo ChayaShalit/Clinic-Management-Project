@@ -1,68 +1,103 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>אזור הרופא</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600&display=swap" rel="stylesheet">
-    <link href="../css/style.css" rel="stylesheet">
-    <script type="module" src="../js/doctorHome.js" defer></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>אזור אישי - רופא</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="../css/style.css" rel="stylesheet">
+  <!-- קובץ חדש של בת 2; אין כאן טעינה של myReferals.js -->
+  <script type="module" src="../js/doctorHome.js" defer></script>
 </head>
-
 <body>
-    <header class="site-header no-print">
-        <div class="container d-flex align-items-center justify-content-between">
-            <h2 class="brand">מרפאה דיגיטלית</h2>
-            <nav class="d-none d-md-flex gap-4">
-                <a href="doctorHome.html" class="nav-link-clinic active">התורים של היום</a>
-                <a href="createReferal.html" class="nav-link-clinic">יצירת הפניה</a>
-            </nav>
-            <span class="user-chip" id="user-chip">שלום, ד״ר</span>
+  <header class="site-header">
+    <div class="container d-flex align-items-center justify-content-between">
+      <h2 class="brand">מרפאה דיגיטלית</h2>
+      <nav class="d-none d-md-flex gap-4">
+        <a href="doctorHome.html" class="nav-link-clinic active">ראשי</a>
+        <a href="#todayAppointments" class="nav-link-clinic">תורים להיום</a>
+        <a href="#allAppointments" class="nav-link-clinic">כל התורים</a>
+        <a href="createReferal.html" class="nav-link-clinic">יצירת הפניה</a>
+      </nav>
+      <span class="user-chip">אזור הרופא</span>
+    </div>
+  </header>
+  <section class="hero">
+    <div class="container">
+      <div class="row align-items-center g-4">
+        <div class="col-md-7">
+          <h1>ברוכים הבאים לאזור הרופא</h1>
+          <p>כאן תוכלו לנהל את התורים, לצפות ביומן ולהפיק דוחות יומיים</p>
+          <a href="#todayAppointments" class="btn btn-light mt-3">צפייה בתורים להיום</a>
         </div>
-    </header>
-
-    <section class="hero no-print">
-        <div class="container">
-            <h1>אזור הרופא</h1>
-            <p>כאן תמצא/י את התורים של היום ותוכל/י לשלוח הפניות למטופלים</p>
-            <a href="createReferal.html" class="btn btn-light mt-3">+ הפניה חדשה</a>
+        <div class="col-md-5 d-none d-md-block">
+          <div class="hero-image-placeholder">מקום לתמונה</div>
         </div>
+      </div>
+    </div>
+  </section>
+  <main class="container my-4">
+    <section class="mb-5" aria-label="פעולות מהירות">
+      <div class="row g-3">
+        <div class="col-6 col-md-3">
+          <a href="#todayAppointments" class="card action-card h-100 shadow-sm text-center p-3">
+            <i class="bi bi-calendar-check"></i>
+            <h3 class="h6 mt-2 mb-1">התורים להיום</h3>
+            <p class="small text-muted mb-0">צפייה בתורים של היום</p>
+          </a>
+        </div>
+        <div class="col-6 col-md-3">
+          <a href="#allAppointments" class="card action-card h-100 shadow-sm text-center p-3">
+            <i class="bi bi-calendar3"></i>
+            <h3 class="h6 mt-2 mb-1">כל התורים</h3>
+            <p class="small text-muted mb-0">צפייה לפי תאריך</p>
+          </a>
+        </div>
+        <div class="col-6 col-md-3">
+          <a href="createReferal.html" class="card action-card h-100 shadow-sm text-center p-3">
+            <i class="bi bi-file-earmark-medical"></i>
+            <h3 class="h6 mt-2 mb-1">יצירת הפניה</h3>
+            <p class="small text-muted mb-0">מעבר לטופס הקיים</p>
+          </a>
+        </div>
+        <div class="col-6 col-md-3">
+          <a href="#downloadTodayPDF" class="card action-card h-100 shadow-sm text-center p-3">
+            <i class="bi bi-file-earmark-pdf"></i>
+            <h3 class="h6 mt-2 mb-1">דוח תורים</h3>
+            <p class="small text-muted mb-0">הורדת תורי היום ל־PDF</p>
+          </a>
+        </div>
+      </div>
     </section>
 
-    <main class="container my-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="h4 mb-0">התורים של היום</h2>
-            <button id="print-btn" type="button" class="btn btn-outline-primary no-print">
-                <i class="bi bi-printer" aria-hidden="true"></i> הדפסה
-            </button>
+    <div id="doctorMessage" class="alert alert-info" role="status">טוען תורים...</div>
+    <section id="todayAppointments" class="mb-5" aria-labelledby="todayTitle">
+      <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap mb-3">
+        <h2 id="todayTitle" class="h4 mb-0">התורים שלי להיום</h2>
+        <button type="button" id="downloadTodayPDF" class="btn btn-primary">
+    הורדת תורי היום ל-PDF
+</button>
+        <button type="button" id="refreshAppointments" class="btn btn-outline-primary btn-sm">רענון תורים</button>
+      </div>
+      <div id="todayList" class="row g-3"></div>
+    </section>
+    <section id="allAppointments" aria-labelledby="allTitle">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+        <h2 id="allTitle" class="h4 mb-0">התורים שלי לפי תאריך</h2>
+        <div class="d-flex gap-2 align-items-center">
+          <label for="appointmentsDate" class="form-label mb-0">תאריך</label>
+          <input id="appointmentsDate" type="date" class="form-control" aria-label="בחר תאריך להצגת התורים">
+          <button id="showAllAppointments" type="button" class="btn btn-outline-secondary">הכול</button>
         </div>
-
-        <div class="table-responsive">
-            <table class="table table-hover bg-white align-middle">
-                <thead>
-                    <tr>
-                        <th scope="col">שעה</th>
-                        <th scope="col">מטופל</th>
-                        <th scope="col">סוג טיפול</th>
-                    </tr>
-                </thead>
-                <tbody id="appointments-body">
-                    <tr>
-                        <td colspan="3" class="text-center text-muted">התורים של היום יוצגו כאן</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </main>
-
-    <footer class="site-footer no-print">
-        <div class="container text-center">
-            מרפאה דיגיטלית · טלפון: 03-1234567 · א׳–ה׳ 8:00–18:00
-        </div>
-    </footer>
+      </div>
+      <div id="allList" class="row g-3"></div>
+    </section>
+  </main>
+  <footer class="site-footer"><div class="container text-center">מרפאה דיגיטלית · טלפון: 03-1234567 · א׳–ה׳ 8:00–18:00</div></footer>
 </body>
-
 </html>
+
+<!-- Injection By NetFree -->
+<script src="https://netfree.link/injection-script/note-in-site.js" type="text/javascript" async  id="netfree-note-site" jsondata="%7B%22noteSite%22:%22%D7%9B%D7%93%D7%99%20%D7%A9%D7%94%D7%AA%D7%9E%D7%95%D7%A0%D7%95%D7%AA%20%D7%91%D7%90%D7%AA%D7%A8%20%D7%94%D7%96%D7%94%20%D7%99%D7%97%D7%96%D7%A8%D7%95%20%D7%9E%D7%91%D7%93%D7%99%D7%A7%D7%94%2C%20%D7%99%D7%A9%20%D7%9C%D7%94%D7%92%D7%93%D7%99%D7%A8%20%5C%22%D7%90%D7%A4%D7%A9%D7%A8%20%D7%9C%D7%A1%D7%A0%D7%9F%20%D7%AA%D7%95%D7%9B%D7%9F%20%D7%A9%D7%99%D7%93%D7%95%D7%A2%20%D7%9B%D7%90%D7%99%D7%A9%D7%99%20%D7%90%D7%95%20%D7%A4%D7%A8%D7%98%D7%99%5C%22%20%D7%91%D7%94%D7%92%D7%93%D7%A8%D7%95%D7%AA%20%D7%A1%D7%99%D7%A0%D7%95%D7%9F%20%5B%5B%D7%A6%D7%90%D7%98_AI_%D7%91%D7%A0%D7%98%D7%A4%D7%A8%D7%99%7C%D7%94%D7%99%D7%9B%D7%A0%D7%A1%D7%95%20%D7%9C%D7%9B%D7%90%D7%9F%20%D7%9C%D7%94%D7%A1%D7%91%D7%A8%20%D7%9E%D7%A4%D7%95%D7%A8%D7%98%5D%5D%22%2C%22noteSiteEn%22:%22For%20images%20on%20this%20website%20to%20work%20you%20need%20to%20set%20%5C%22Filter%20content%20that%20is%20known%20as%20personal%20or%20private%5C%22%20%5B%5BAI_Chats_in_NetFree%7CClick%20here%20to%20read%20more%5D%5D%22%7D"></script><script src="//netfree.link/injection-script/go-payment.js" type="text/javascript" async ></script>
+<script src="//netfree.link/injection-script/popup-card-init.js" type="text/javascript" async ></script>

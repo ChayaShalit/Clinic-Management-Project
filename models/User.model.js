@@ -7,7 +7,7 @@ const userSchema = new Schema(
   {
     tz:{
         type:String,
-        required:[true,'נא להזין מספר זהות'],
+       required: [true, 'נא להזין מספר זהות'],
         unique:true,
         trim:true,
         maxlength:[9,'אורך מספר זהות עד 9 תוים']
@@ -37,7 +37,7 @@ const userSchema = new Schema(
     },
     phone: {
       type: String,
-      required: [true, 'נא להזין מספר טלפון'],
+      required: [ 'נא להזין מספר טלפון'],
       trim: true,
     },
     role: {

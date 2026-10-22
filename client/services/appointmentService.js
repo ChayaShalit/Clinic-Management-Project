@@ -1,7 +1,7 @@
 import { API_URL } from './config.js'
 
 // באיזה מפתח נשמר הטוקן אחרי ההתחברות. לבדוק מול בת 1 שזה אותו שם
-const TOKEN_KEY = 'token'
+import { TOKEN_KEY } from './config.js'
 
 export const getMyAppointments = async () => {
     const token = localStorage.getItem(TOKEN_KEY)

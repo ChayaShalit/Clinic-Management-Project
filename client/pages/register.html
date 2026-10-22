@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>הרשמה - מערכת ניהול תורים</title>
+  <link rel="stylesheet" href="../css/auth.css">
+  <script  type="module"  src="../js/register.js" defer></script>
+</head>
+<body>
+
+<div class="auth-container">
+  <div class="auth-card">
+    <h2>יצירת חשבון חדש</h2>
+    <div class="auth-sub">הזינו את הנתונים שלכם להרשמה</div>
+
+    <form id="registerForm">
+      <div class="form-group">
+        <label for="name">שם מלא</label>
+        <input type="text" id="name" placeholder="ישראל ישראלי" required>
+      </div>
+
+      <div class="form-group">
+        <label for="email">כתובת אימייל</label>
+        <input type="email" id="email" placeholder="name@example.com" required>
+      </div>
+
+      <div class="form-group">
+        <label for="password">סיסמה</label>
+        <input type="password" id="password" placeholder="••••••••" required>
+      </div>
+
+      <div class="form-group">
+        <label for="role">סוג משתמש (תפקיד)</label>
+        <select id="role" required>
+            <option value="">— בחרו תפקיד —</option>
+            <option value="patient">מטופל (Patient)</option>
+            <option value="doctor">רופא (Doctor)</option>
+        </select>
+      </div>
+
+      <div id="apiMessage"></div>
+
+      <button type="submit" class="btn-submit" id="submitBtn">הירשם</button>
+    </form>
+
+    <div class="auth-footer">
+      כבר יש לכם חשבון? <a href="login.html">התחברו כאן</a>
+    </div>
+  </div>
+</div>
+
+<script>
+
+</script>
+
+</body>
+</html>

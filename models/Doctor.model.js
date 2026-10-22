@@ -1,41 +1,46 @@
 import mongoose from 'mongoose';
 
 const doctorSchema = new mongoose.Schema({
-    // הקישור למשתמש. השם, המייל והטלפון של הרופא נשמרים באוסף users
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'users',
         required: true,
-        unique: true
-    },
+        unique: true},
+    // הקישור למשתמש. השם, המייל והטלפון של הרופא נשמרים באוסף users
+
     specialty: {
-        type: String // תחום התמחות, אם רלוונטי
+        type: String// תחום התמחות, אם רלוונטי
     },
+
     appointmentDuration: {
-        type: Number,      // כמה דקות כל תור
+        type: Number,
         default: 15,
-        required: true
+        
     },
+
     workStartTime: {
-        type: String,       // שעת הגעה, למשל '08:00'
+        type: String, 
+        default: '08:00' ,     // שעת הגעה, למשל '08:00'
         required: true
     },
+
     workEndTime: {
-        type: String,        // שעת יציאה, למשל '17:00'
+        type: String,
+        default: '17:00',       // שעת יציאה, למשל '17:00'
         required: true
     },
+
     dayOff: {
         type: String,
         enum: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-        // יום חופשי קבוע בשבוע
     },
+
     breaks: [
         {
-            startTime: String, // למשל '13:00'
-            endTime: String    // למשל '14:00'
+            startTime: String,
+            endTime: String
         }
-    ],
-  
+    ]
 });
 
 const Doctor = mongoose.model('Doctor', doctorSchema);

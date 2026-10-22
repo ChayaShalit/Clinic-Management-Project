@@ -8,7 +8,7 @@ export const createToken = (user) => {
         role:user.role
     };
 
-    const token = jwt.sign (payload,env.JWT_SECRET_KEY);
+    const token = jwt.sign (payload,env.JWT_SECRET_KEY,{ expiresIn: '1d' });
 
     return token;
 }

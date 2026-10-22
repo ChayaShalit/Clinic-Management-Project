@@ -1,7 +1,7 @@
 import { getReferalsByPatient, markReferalAsRead } from '../services/referalService.js'
 import { FILES_URL } from '../services/config.js'
 
-const patientId = "222222222222222222222222"
+const patientId = localStorage.getItem('userId')
 
 const escapeHTML = (str) => {
     const div = document.createElement('div')

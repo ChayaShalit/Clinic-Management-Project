@@ -36,7 +36,7 @@ const renderAppointments = (appointments) => {
                 <div class="card-body">
                     <h3 class="h6 mb-1">${escapeHTML(formatDate(a.date))}</h3>
                     <p class="fs-4 fw-semibold mb-2">${escapeHTML(a.time)}</p>
-                    <p class="mb-1">${escapeHTML(a.doctorId?.name ? 'ד״ר ' + a.doctorId.name : '')}</p>
+                    <p class="mb-1">${escapeHTML(a.doctorId?.userId?.name? 'ד״ר ' + a.doctorId.userId.name : '')}</p>
                     <p class="small text-muted mb-0">${escapeHTML(a.treatmentType || '')}</p>
                 </div>
             </div>

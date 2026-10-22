@@ -1,7 +1,7 @@
 import { getReferalsByPatient, markReferalAsRead } from '../services/referalService.js'
 import { FILES_URL } from '../services/config.js'
 
-const patientId = "222222222222222222222222"
+const patientId = localStorage.getItem('userId')
 
 const escapeHTML = (str) => {
     const div = document.createElement('div')
@@ -30,6 +30,7 @@ const fetchReferals = async () => {
                 ? '<span class="badge bg-success">חדשה</span>'
                 : '<span class="badge bg-secondary">נקראה</span>'}
                         </div>
+                        <p class="text-muted mb-1">${referal.doctorId?.userId?.name ? 'ד״ר ' + escapeHTML(referal.doctorId.userId.name) : ''}</p>
                         <p class="card-text">${escapeHTML(referal.description)}</p>
                         ${referal.attachedFile
                 ? `<a class="btn btn-outline-primary btn-sm" href="${FILES_URL}/${encodeURIComponent(referal.attachedFile)}" target="_blank" rel="noopener">צפייה בקובץ</a>`

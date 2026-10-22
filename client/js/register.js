@@ -12,7 +12,6 @@ function showApiMessage(msg, isSuccess) {
     const role = document.getElementById('role');
     const tzContainer = document.getElementById('tzContainer');
     const tzInput = document.getElementById('tz');
-    console.log(`${role}--------${tz}`)
 
     role.addEventListener('change', function () {
       if (this.value === 'patient') {

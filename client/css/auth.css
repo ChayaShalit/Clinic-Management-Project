@@ -371,3 +371,6 @@ body:has(#registerForm) .auth-container::before {
     transition: none !important;
   }
 }
+.hidden{
+  display: none;
+}

@@ -2,73 +2,50 @@ import { Patient } from "../models/Patient.model.js";
 import Doctor from "../models/Doctor.model.js";
 import { User } from "../models/User.model.js";
 import{createToken} from "../services/jwt.services.js"
+import { AppError } from '../utils/AppError.js';
+
 
 export const register =async (req,res,next) => {
 
     console.log('you are in register function')
-try{
+
 
     const {tz,name,email,password} =req.body
 
     const role = req.body.role === 'doctor' ? 'doctor' : 'patient'
 
-    // if (role === 'patient'){
-    //     const { dateBirth } = req.body; 
-    //         if (!dateBirth) {
-    //         const error =new Error('שדה תאריך לידה הוא חובה עבור מטופל') ;
-    //         error.status= 400;
-    //         error.type='auth error';
-    //         return next(error);
-    //         }   
-    //     }
-
+   
     // בדיקה האם המשתמש כבר קיים לפי האימייל
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
-        const error =new Error('האימייל כבר קיים במערכת' ) ;
-            error.status= 400;
-            error.type='auth error';
-            return next(error);
+
+        throw new AppError('האימייל כבר קיים במערכת','400','auth error')
+       
     }
 
-    const newUser =await User.create({
-        tz,
-        name,
-        email,
-        password,
-        profileImage,
-        phone,
-        role
-    });
+    const newUser =await User.create({tz,name,email,password,role});
     
-    if(role === 'patient'){
+    try{
+    
+        if(role === 'patient'){
         await Patient.create({
             userId: newUser._id,
-            // dateBirth:req.body.dateBirth
         });
     }
 
     else {
-    //  const {specialty,appointmentDuration,workStartTime,workEndTime,dayOff,breaks}=req.body 
-        await Doctor.create({
-            userId: newUser._id,
-            // specialty,
-            // appointmentDuration,
-            // workStartTime,
-            // workEndTime,
-            // dayOff,
-            // breaks
-        });
+        await Doctor.create({ userId: newUser._id });
     }
 
-    //שליחה ליצירת תוקן
-    const newToken = createToken(newUser)
- 
-    
+     } catch (err) {
+        await User.findByIdAndDelete(newUser._id);   // לא משאירים משתמש יתום
+        throw err;
+    }
+
     res.status(201).json({
         massege:'המשתמש נרשם בהצלחה!',
-        newToken,
+       token: createToken(newUser),  //שליחה ליצירת תוקן
         user: {
                 id: newUser._id,
                 name: newUser.name,
@@ -77,10 +54,6 @@ try{
             }
 
         })
-
-    }catch(error){
-            return next(error);
-    }
 }
 
 
@@ -91,37 +64,23 @@ try{
 
    const user = await User.findOne({email}).select('+password')
 
-   if(!user){
-    const error = new Error ('אימייל או סיסמא שגויים')
-    error.status=401
-    error.type='auth error'
-    return next(error);
+   if(!user || !(await user.comparePassword(password))){
+        throw new AppError ('אימייל או סיסמא שגויים','401','auth error')
    }
 
-   const isMatch = await user.comparePassword(password);
-   
-   if(!isMatch){
-     const error = new Error ('אימייל או סיסמא שגויים')
-    error.status=401
-    error.type='auth error'
-    return next(error);
-   }
-
-    const newToken = createToken(user)
 
     return res.status(200).json({
         massege:'התחברת בהצלחה!',
-        token:newToken,
+        token:createToken(user),
         user:{
             id: user._id,
             name: user.name,
             email: user.email,
-            role: user.role
-        }
+            role: user.role }
         })
     }
     catch(error){
-    return next(error)
+        return next(error)
     }
 }
 

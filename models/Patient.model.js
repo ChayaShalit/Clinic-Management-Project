@@ -11,7 +11,6 @@ const patientSchema = new Schema(
     },
     dateBirth:{
         type:Date,
-        required:true
     },
    //הערות רפאויות
     medicalNotes: {

@@ -6,7 +6,8 @@ import {
     getDoctorAppointments,
     getMyAppointments,
     getMyDoctorAppointments,
-    downloadTodayAppointmentsPDF
+    downloadTodayAppointmentsPDF,
+    getAvailability
 } from '../controllers/appointmentController.js';
 import { validateAppointmentTime } from '../middlewares/appointment.middleware.js';
 import {auth,authPatient,authDoctor} from '../middlewares/auth.middleware.js'
@@ -19,6 +20,7 @@ router.get('/doctor/my/today/pdf',
 );
 router.get('/doctor/my', auth, authDoctor, getMyDoctorAppointments);
 router.get('/my', auth, authPatient, getMyAppointments);
+router.get('/availability', auth, getAvailability);
 router.post('/',auth,authPatient, validateAppointmentTime, createAppointment);
 router.put('/:id', auth, validateAppointmentTime, updateAppointment);
 router.delete('/:id',auth, deleteAppointment);

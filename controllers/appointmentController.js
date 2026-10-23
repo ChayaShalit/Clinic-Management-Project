@@ -5,6 +5,10 @@ import PDFDocument from 'pdfkit';
 import Doctor from '../models/Doctor.model.js';
 import fs from 'node:fs';
 import { sendAppointmentConfirmation } from '../services/notification.service.js';
+import { fileURLToPath } from 'node:url';
+
+// ב-PDF מספרים בתוך טקסט עברי מתהפכים, אז הופכים אותם מראש
+const ltr = (text) => [...String(text)].reverse().join('');
 
 // בודק שהתור שייך למשתמש המחובר: המטופלת שקבעה אותו, או הרופא שלו
 const canManageAppointment = async (appointment, currentUser) => {
@@ -265,8 +269,8 @@ export const downloadTodayAppointmentsPDF = async (req, res) => {
             })
             .sort({ time: 1 });
 
-        // משתמשים בגופן עברי שקיים ב-Windows
-        const fontPath = 'C:/Windows/Fonts/arial.ttf';
+                // גופן עברי שנמצא בתוך הפרויקט, כדי שיעבוד גם בשרת בענן
+        const fontPath = fileURLToPath(new URL('../fonts/Heebo-Regular.ttf', import.meta.url));
 
         if (!fs.existsSync(fontPath)) {
             return res.status(500).json({
@@ -289,21 +293,21 @@ export const downloadTodayAppointmentsPDF = async (req, res) => {
         doc.font(fontPath);
 
         doc.fontSize(20).text('תורים להיום', {
-            align: 'right'
+            align: 'right', features: ['rtla']
         });
 
         doc.moveDown();
 
         doc.fontSize(12).text(
             now.toLocaleDateString('he-IL'),
-            { align: 'right' }
+            { align: 'right', features: ['rtla'] }
         );
 
         doc.moveDown();
 
         if (appointments.length === 0) {
             doc.text('אין תורים להיום', {
-                align: 'right'
+                align: 'right', features: ['rtla']
             });
         } else {
             appointments.forEach((appointment, index) => {
@@ -311,13 +315,13 @@ export const downloadTodayAppointmentsPDF = async (req, res) => {
                     appointment.patientId?.userId?.name || 'לא ידוע';
 
                 doc.fontSize(12).text(
-                    `${index + 1}. ${appointment.time} | ${patientName}`,
-                    { align: 'right' }
+                    `${index + 1}. ${ltr(appointment.time)} | ${patientName}`,
+                    { align: 'right', features: ['rtla'] }
                 );
 
                 doc.text(
                     `סוג טיפול: ${appointment.treatmentType || 'לא צוין'}`,
-                    { align: 'right' }
+                    { align: 'right', features: ['rtla'] }
                 );
 
                 doc.moveDown();

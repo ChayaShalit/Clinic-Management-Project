@@ -26,6 +26,7 @@
 
       try {
             const data = await loginUser(loginData.email, loginData.password);
+
             console.log(`${data}`)
 
             // שמירת הנתונים ב-localStorage
@@ -36,11 +37,9 @@
             
             localStorage.setItem('role', data.user.role);
 
-              
-            //   localStorage.setItem(TOKEN_KEY, data.token);
-            //   localStorage.setItem('userId', data.userId || data.id);
-            //   localStorage.setItem('role', data.role);
+            localStorage.setItem('userName',data.user.name)
 
+              
             showApiMessage('התחברתם בהצלחה!', true);
 
               setTimeout(() => {

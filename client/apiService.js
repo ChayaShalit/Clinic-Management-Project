@@ -34,6 +34,7 @@ export async function registerUser(registerData) {
 
 try{
     console.log('נכנסת לפונקציה ההרשמה בקובץ הראשי ')
+    
     const response = await fetch(`${API_URL}/auth/register`,{
         
         method:'POST',

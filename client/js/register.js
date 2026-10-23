@@ -9,21 +9,6 @@ function showApiMessage(msg, isSuccess) {
     msgEl.style.display = 'block';
 }
 
-    const role = document.getElementById('role');
-    const tzContainer = document.getElementById('tzContainer');
-    const tzInput = document.getElementById('tz');
-
-    role.addEventListener('change', function () {
-      if (this.value === 'patient') {
-        tzContainer.classList.remove('hidden'); // הצג אם נבחר מטופל
-        tzInput.required = true;     // הופכים את השדה לחובה רק כשהוא מוצג
-      } else {
-        tzContainer.classList.add('hidden');    // הסתר לכל בחירה אחרת
-        tzInput.required = false;              // מבטלים את ה-required כשהוא מוסתר
-        tzInput.value = '';                    // מרוקנים את השדה במידה והוקלד משהו
-      }
-    });
-
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 

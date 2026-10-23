@@ -27,6 +27,13 @@ if (!date || !time || !doctorId) {
     return next();
 }
         const appointmentDate = new Date(date);
+        const tomorrow = new Date();
+        tomorrow.setHours(0, 0, 0, 0);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        if (appointmentDate < tomorrow) {
+            return res.status(400).json({ message: "ניתן לקבוע תור החל ממחר." });
+}
         const dayOfWeekIndex = appointmentDate.getDay();
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const dayName = days[dayOfWeekIndex];

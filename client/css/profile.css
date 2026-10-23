@@ -1,0 +1,133 @@
+/* עיצוב דף הפרופיל. Bootstrap מטפל בפריסה ובשדות, וכאן רק מה שייחודי לדף */
+:root {
+  --pf-primary: #1e5fa8;
+  --pf-patient: #1f8a5b;
+  --pf-patient-soft: #e6f6ee;
+  --pf-doctor: #6b4fb8;
+  --pf-doctor-soft: #efeafa;
+  --pf-border: #dde3ea;
+  --pf-muted: #6b7785;
+  --pf-radius: 14px;
+}
+
+.profile-page {
+  max-width: 720px;
+  padding-block: 28px 56px;
+}
+
+.profile-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+/* כרטיס כללי (גם fieldset וגם section) */
+.profile-card {
+  background: #fff;
+  border: 1px solid var(--pf-border);
+  border-radius: var(--pf-radius);
+  padding: 22px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 3px rgba(20, 40, 70, 0.06);
+  min-width: 0;
+}
+
+.profile-legend {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+/* צבע שונה לקבוצת השדות של כל תפקיד */
+.profile-card[data-role="patient"] { border-top: 4px solid var(--pf-patient); }
+.profile-card[data-role="patient"] .profile-legend { color: var(--pf-patient); }
+.profile-card[data-role="doctor"] { border-top: 4px solid var(--pf-doctor); }
+.profile-card[data-role="doctor"] .profile-legend { color: var(--pf-doctor); }
+
+/* תמונת פרופיל */
+.avatar-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.avatar-wrap {
+  position: relative;
+  flex: none;
+}
+
+.avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #e8f1fb;
+  border: 4px solid #fff;
+  box-shadow: 0 0 0 2px var(--pf-border);
+}
+
+.avatar-btn {
+  position: absolute;
+  bottom: 2px;
+  inset-inline-end: 2px;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--pf-primary);
+  color: #fff;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.avatar-btn:hover,
+.avatar-btn:focus-visible {
+  background: #174a85;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 2px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: #e8f1fb;
+  color: var(--pf-primary);
+}
+
+.role-patient .role-badge { background: var(--pf-patient-soft); color: var(--pf-patient); }
+.role-doctor .role-badge { background: var(--pf-doctor-soft); color: var(--pf-doctor); }
+
+.avatar-hint,
+.field-note {
+  font-size: 0.85rem;
+  color: var(--pf-muted);
+  margin: 8px 0 0;
+}
+
+/* שדות שלא ניתן לשנות (אימייל, ת.ז) */
+.form-control:disabled {
+  background: #f3f5f8;
+  color: var(--pf-muted);
+  cursor: not-allowed;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--pf-primary);
+  box-shadow: 0 0 0 0.2rem rgba(30, 95, 168, 0.15);
+}
+
+/* הודעת הצלחה או שגיאה */
+#apiMessage {
+  padding: 12px 16px;
+  border-radius: 10px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 576px) {
+  .profile-card { padding: 16px; }
+  .avatar-card { flex-direction: column; text-align: center; }
+}

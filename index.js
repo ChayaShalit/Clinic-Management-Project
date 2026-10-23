@@ -42,6 +42,7 @@ app.use('/api/patient', patientRouter)
 
 app.use('/api/', reminderRouter)
 
+
 // app.get('/api/health',(req,res)=>{
 //     res.status(200).json({stutus:'ok',message:'השרת עובד בהצלחה'})
 // })

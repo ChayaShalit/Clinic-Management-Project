@@ -134,9 +134,10 @@ function selectDoctor(doctor) {
 /* ---------- שלב 2: לוח שנה ---------- */
 function isDayAvailable(day) {
     const today = startOfToday()
+    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1)
     const limit = new Date(today); limit.setDate(limit.getDate() + MAX_DAYS_AHEAD)
     const name = WEEKDAYS[day.getDay()]
-    if (day < today || day > limit) return { ok: false }
+    if (day < tomorrow || day > limit) return { ok: false }
     if (name === 'Saturday') return { ok: false, off: true, reason: 'שבת' }
     if (state.doctor?.dayOff === name) return { ok: false, off: true, reason: 'יום חופש של הרופא/ה' }
     return { ok: true }

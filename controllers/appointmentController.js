@@ -5,6 +5,22 @@ import PDFDocument from 'pdfkit';
 import Doctor from '../models/Doctor.model.js';
 import fs from 'node:fs';
 import { sendAppointmentConfirmation } from '../services/notification.service.js';
+
+// בודק שהתור שייך למשתמש המחובר: המטופלת שקבעה אותו, או הרופא שלו
+const canManageAppointment = async (appointment, currentUser) => {
+    if (currentUser.role === 'patient') {
+        const patient = await Patient.findOne({ userId: currentUser.id });
+        return Boolean(patient) && String(appointment.patientId) === String(patient._id);
+    }
+
+    if (currentUser.role === 'doctor') {
+        const doctor = await Doctor.findOne({ userId: currentUser.id });
+        return Boolean(doctor) && String(appointment.doctorId) === String(doctor._id);
+    }
+
+    return false;
+};
+
 // המטופלת נקבעת לפי ההתחברות (הטוקן), והרופא נבחר מהרשימה
 export const createAppointment = async (req, res) => {
     try {
@@ -76,6 +92,9 @@ export const updateAppointment = async (req, res) => {
         if (!currentAppointment) {
             return res.status(404).json({ message: "התור לא נמצא" });
         }
+                if (!(await canManageAppointment(currentAppointment, req.currentUser))) {
+            return res.status(403).json({ message: "אין לך הרשאה לשנות תור זה" });
+        }
         if (date || time) {
             const conflict = await Appointment.findOne({
                 _id: { $ne: id },
@@ -112,19 +131,25 @@ export const deleteAppointment = async (req, res) => {
     try {
         const { id } = req.params;
 
-        // מוצאים את התור לפי ה-ID ומוחקים אותו
-        const deletedAppointment = await Appointment.findByIdAndDelete(id);
+        const appointment = await Appointment.findById(id);
 
-        if (!deletedAppointment) {
+        if (!appointment) {
             return res.status(404).json({ message: "התור לא נמצא" });
         }
 
-        res.status(200).json({ message: "התור בוטל ונמחק בהצלחה" });
+        if (!(await canManageAppointment(appointment, req.currentUser))) {
+            return res.status(403).json({ message: "אין לך הרשאה לבטל תור זה" });
+        }
+
+        await appointment.deleteOne();
+
+        res.status(200).json({ message: "התור בוטל בהצלחה" });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "שגיאת שרת בעת ביטול התור" });
     }
 };
+
 
 // פונקציה לשליפת התורים של רופא ספציפי
 export const getDoctorAppointments = async (req, res) => {

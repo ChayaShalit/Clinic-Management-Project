@@ -61,3 +61,13 @@ export const bookAppointment = async (appointment) => {
     if (!response.ok) throw await readError(response, 'אירעה שגיאה בקביעת התור')
     return await response.json()
 }
+
+// ביטול (מחיקת) תור. השרת מוודא שהתור שייך למשתמשת המחוברת
+export const cancelAppointment = async (id) => {
+    const response = await fetch(`${API_URL}/appointments/${id}`, {
+        method: 'DELETE',
+        headers: authHeaders()
+    })
+    if (!response.ok) throw await readError(response, 'אירעה שגיאה בביטול התור')
+    return await response.json()
+}

@@ -1,5 +1,4 @@
-import { getMyAppointments } from '../services/appointmentService.js'
-
+import { getMyAppointments, cancelAppointment } from '../services/appointmentService.js'
 const listEl = document.getElementById('upcoming-list')
 
 // מונע הזרקת קוד אם יש בטקסט מהשרת תווים מיוחדים
@@ -38,6 +37,7 @@ const renderAppointments = (appointments) => {
                     <p class="fs-4 fw-semibold mb-2">${escapeHTML(a.time)}</p>
                     <p class="mb-1">${escapeHTML(a.doctorId?.userId?.name? 'ד״ר ' + a.doctorId.userId.name : '')}</p>
                     <p class="small text-muted mb-0">${escapeHTML(a.treatmentType || '')}</p>
+                    <button type="button" class="btn btn-outline-danger btn-sm mt-3 cancel-btn" data-id="${escapeHTML(a._id)}">ביטול תור</button>
                 </div>
             </div>
         </div>
@@ -75,4 +75,22 @@ if (savedName) {
     document.getElementById('user-chip').textContent = `שלום, ${savedName}`
 }
 
+   // ביטול תור: מאשרים, שולחים לשרת, ואז טוענים את הרשימה מחדש
+   listEl.addEventListener('click', async (e) => {
+       const button = e.target.closest('.cancel-btn')
+       if (!button) return
+
+       if (!confirm('לבטל את התור?')) return
+
+       button.disabled = true
+
+       try {
+           await cancelAppointment(button.dataset.id)
+           await loadUpcomingAppointments()
+       } catch (error) {
+           console.error(error.message)
+           button.disabled = false
+           alert(error.message)
+       }
+   })
 loadUpcomingAppointments()

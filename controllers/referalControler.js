@@ -2,6 +2,7 @@ import Referal
 from "../models/Referal.js";
 import { User } from "../models/User.model.js";
 import Doctor from "../models/Doctor.model.js";
+import { sendReferalNotification } from "../services/notification.service.js";
 const createReferal = async (req, res) => {
     try {
         const doctor = await Doctor.findOne({ userId: req.currentUser.id });
@@ -20,6 +21,16 @@ const createReferal = async (req, res) => {
             patientId: patientUser._id,
             attachedFile: req.file ? req.file.filename : null
         });
+        //{kkkkkkk
+        const doctorUser = await User.findById(req.currentUser.id).select('name').catch(() => null);
+        sendReferalNotification({
+            to: patientUser.email,
+            patientName: patientUser.name,
+            doctorName: doctorUser?.name,
+            kindReferal: newReferal.kindReferal,
+            hasAttachment: Boolean(newReferal.attachedFile)
+        });
+        //}
         res.json(newReferal);
     } catch (error) {
         if (error.name === 'ValidationError') {

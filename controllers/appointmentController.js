@@ -4,6 +4,7 @@ import { User } from '../models/User.model.js';
 import PDFDocument from 'pdfkit';
 import Doctor from '../models/Doctor.model.js';
 import fs from 'node:fs';
+import { sendAppointmentConfirmation } from '../services/notification.service.js';
 // המטופלת נקבעת לפי ההתחברות (הטוקן), והרופא נבחר מהרשימה
 export const createAppointment = async (req, res) => {
     try {
@@ -40,9 +41,20 @@ export const createAppointment = async (req, res) => {
             patientName: user.name,
             patientEmail: user.email
         });
-
+//{kkkkkkkk
         await newAppointment.save();
-
+        const doctor = await Doctor.findById(doctorId).populate('userId', 'name').catch(() => null);
+        sendAppointmentConfirmation({
+            to: user.email,
+            patientName: user.name,
+            doctorName: doctor?.userId?.name,
+            date,
+            time,
+            treatmentType,
+            durationMinutes: doctor?.appointmentDuration,
+            wantsReminder: wantsReminder === true
+        });
+        //kkkk}
         res.status(201).json({
             message: "התור נקבע בהצלחה!",
             appointment: newAppointment

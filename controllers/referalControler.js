@@ -47,14 +47,17 @@ const createReferal = async (req, res) => {
  אם הוא נפל בשגיאה של פרטים מחזיר סטטוס 400
  אחרת סטטוס 500 שזה שרת
  */
-const getReferalForPatient=async(req,res)=>{
+const getReferalForPatient = async (req, res) => {
     const patientId = req.params.id
     try {
+        if (req.currentUser.role === 'patient' && String(req.currentUser.id) !== String(patientId)) {
+            return res.status(403).json({ message: "אין הרשאה לראות הפניות של משתמש אחר" })
+        }
         const referals = await Referal.find({ patientId: patientId })
             .populate({ path: 'doctorId', populate: { path: 'userId', select: 'name' } })
-    }
-    catch(error){
-        res.status(500).json({message:"error in ID"})
+        res.json(referals)
+    } catch (error) {
+        res.status(500).json({ message: "error in ID" })
     }
 }
 /**

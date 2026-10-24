@@ -3,6 +3,7 @@ import path from "path"
 
 
 const storageObj = multer.diskStorage({
+
   destination: function (req, file, cb) {
     try {
       cb(null, 'uploads/');
@@ -11,6 +12,7 @@ const storageObj = multer.diskStorage({
       cb(err, null);
     }
   },
+  
   filename: function (req, file, cb) {
     try {
      //מגדיר סיומת יחודית לקובץ

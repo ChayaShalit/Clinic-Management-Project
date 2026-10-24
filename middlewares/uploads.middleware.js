@@ -1,6 +1,6 @@
 import multer from "multer";
 import path from "path"
-import { AppError } from "../utils/AppError";
+import { AppError } from "../utils/AppError.js";
 
 
 const storageObj = multer.diskStorage({

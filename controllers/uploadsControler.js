@@ -20,7 +20,6 @@ export const UploadProfile = async (req,res,next)=>{
         return next(err)
         }
 
-    // const {fileName,filePath}=file
 
     const user  =await User.findById(id)
     const oldImage = user.profileImage;

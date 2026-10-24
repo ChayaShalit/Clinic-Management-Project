@@ -14,6 +14,7 @@ import { appointmentrouter } from './routes/appointmentRoutes.js'
 import { doctorRouter } from './routes/doctorRoutes.js'
 import { doctorScheduleRouter } from './routes/doctorScheduleRoutes.js'
 import { reminderRouter } from './routes/reminderroutes.js'
+import {profileRouter} from './routes/profileRouter.js'
 
 
 const app = express();
@@ -30,8 +31,6 @@ app.use(cors());
 
 app.use('/files', express.static('files'))
 
-// app.use('/api/appointments', appointmentrouter)
-
 app.use('/api/appointments', appointmentrouter)
 
 app.use('/api/', doctorRouter)
@@ -45,6 +44,8 @@ app.use('/api/auth', authRouter)
 app.use('/api/patient', patientRouter)
 
 app.use('/api/', reminderRouter)
+
+app.use('api/profile',profileRouter)
 
 
 // app.get('/api/health',(req,res)=>{

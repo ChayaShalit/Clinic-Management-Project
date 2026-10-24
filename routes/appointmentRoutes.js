@@ -10,6 +10,8 @@ import {
     getAvailability
 } from '../controllers/appointmentController.js';
 import { validateAppointmentTime } from '../middlewares/appointment.middleware.js';
+import { validate } from '../middlewares/validate.middleware.js';
+import { createAppointmentSchema, updateAppointmentSchema, availabilityQuerySchema } from '../validators/appointment.validator.js';
 import {auth,authPatient,authDoctor} from '../middlewares/auth.middleware.js'
 
 const router = express.Router();
@@ -20,9 +22,9 @@ router.get('/doctor/my/today/pdf',
 );
 router.get('/doctor/my', auth, authDoctor, getMyDoctorAppointments);
 router.get('/my', auth, authPatient, getMyAppointments);
-router.get('/availability', auth, getAvailability);
-router.post('/',auth,authPatient, validateAppointmentTime, createAppointment);
-router.put('/:id', auth, validateAppointmentTime, updateAppointment);
+router.get('/availability', auth, validate(availabilityQuerySchema, 'query'), getAvailability);
+router.post('/', auth, authPatient, validate(createAppointmentSchema), validateAppointmentTime, createAppointment);
+router.put('/:id', auth, validate(updateAppointmentSchema), validateAppointmentTime, updateAppointment);
 router.delete('/:id',auth, deleteAppointment);
 router.get('/doctor/:doctorId',auth,authDoctor, getDoctorAppointments);
 

@@ -1,11 +1,11 @@
 import { API_URL, TOKEN_KEY } from './config.js'
 
-const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}` })
+export const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}` })
 
 export const hasToken = () => Boolean(localStorage.getItem(TOKEN_KEY))
 
 // מחלץ את הודעת השגיאה שהשרת שלח, ושומר את קוד הסטטוס על השגיאה
-const readError = async (response, fallback) => {
+export const readError = async (response, fallback) => {
     const data = await response.json().catch(() => ({}))
     const error = new Error(data.message || data.error?.message || fallback)
     error.status = response.status
@@ -59,5 +59,15 @@ export const bookAppointment = async (appointment) => {
         body: JSON.stringify(appointment)
     })
     if (!response.ok) throw await readError(response, 'אירעה שגיאה בקביעת התור')
+    return await response.json()
+}
+
+// ביטול (מחיקת) תור. השרת מוודא שהתור שייך למשתמשת המחוברת
+export const cancelAppointment = async (id) => {
+    const response = await fetch(`${API_URL}/appointments/${id}`, {
+        method: 'DELETE',
+        headers: authHeaders()
+    })
+    if (!response.ok) throw await readError(response, 'אירעה שגיאה בביטול התור')
     return await response.json()
 }

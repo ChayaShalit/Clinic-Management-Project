@@ -144,7 +144,7 @@ async function loadAppointments() {
 
         if (!response.ok) {
             throw new Error(
-                data.message || 'לא ניתן לטעון תורים'
+                data.message || data.error?.message || 'לא ניתן לטעון תורים'
             );
         }
 
@@ -194,7 +194,7 @@ document.getElementById('downloadTodayPDF')
 
         try {
             const response = await fetch(
-                'http://localhost:3000/api/appointments/doctor/my/today/pdf',
+                `${API_URL}/appointments/doctor/my/today/pdf`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`

@@ -65,6 +65,7 @@ try{
 }
 
 export async function getUserProfile (role,id,token){
+    console.log(`נכנס לפונרקציה עדכון פרפיל בלקוח ! ___________ הטוקן :${token}`)
     try{
         const response = await fetch(`${API_URL}/${role}/${id}/`,{
             method:'GET',

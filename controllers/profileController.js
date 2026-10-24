@@ -1,5 +1,5 @@
 import {User} from '../models/User.model.js'
-import {Doctor} from '../models/Doctor.model.js'
+import Doctor from '../models/Doctor.model.js'
 import {Patient} from '../models/Patient.model.js'
 import { AppError } from '../utils/AppError.js'
 

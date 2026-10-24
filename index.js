@@ -23,13 +23,13 @@ connectDB();
 
 app.use('/uploads', express.static('uploads'));
 
+app.use('/files', express.static('files'))
+
 app.use(express.json());
 
 app.use(morgan('dev'));
 
 app.use(cors());
-
-app.use('/files', express.static('files'))
 
 app.use('/api/appointments', appointmentrouter)
 
@@ -47,10 +47,6 @@ app.use('/api/', reminderRouter)
 
 app.use('api/profile',profileRouter)
 
-
-// app.get('/api/health',(req,res)=>{
-//     res.status(200).json({stutus:'ok',message:'השרת עובד בהצלחה'})
-// })
 
 startReminderJob();
 

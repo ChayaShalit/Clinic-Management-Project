@@ -11,9 +11,7 @@ export const auth =async (req,res,next) => {
           const authHeader = req.headers.authorization;
 
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            const error = new Error('אין טוקן מזהה או מבנה שגוי') ;
-            error.status = 401;
-            error.type= 'token error'
+            const error = new AppError('אין טוקן מזהה או מבנה שגוי','401','token error') ;
             return next(error);
         }
         const token = authHeader.split(' ')[1];
@@ -25,11 +23,8 @@ export const auth =async (req,res,next) => {
         const userExists = await User.findById(userData.userId);
 
         if(!userExists){
-            throw new AppError('המשתמש המשויך לטוקן זה אינו קיים במערכת','401','auth error')
-            // const error =new Error('המשתמש המשויך לטוקן זה אינו קיים במערכת') ;
-            // error.status= 401;
-            // error.type='auth error';
-            // return next(error);
+            const error= new AppError('המשתמש המשויך לטוקן זה אינו קיים במערכת','401','auth error')
+            return next(error);
 
         }
             req.currentUser = { id:String(userExists._id),  role:userExists.role}
@@ -52,9 +47,7 @@ export const authDoctor = (req,res,next)=>{
         return next()
     }
     
-    const error = new Error('גישה חסומה: נדרשת הרשאת רופא');
-    error.status = 403;
-    error.type = 'auth error';
+    const error = new AppError('גישה חסומה: נדרשת הרשאת רופא','40','auth error');
     next(error);
 }
 
@@ -66,8 +59,6 @@ export const authPatient = (req,res,next)=>{
         return next()
     }
     
-    const error = new Error('גישה חסומה: נדרשות הרשאות מטופל');
-    error.status = 403;
-    error.type = 'auth error';
+    const error = new AppError('גישה חסומה: נדרשות הרשאות מטופל','403','auth error');
     next(error);
 }

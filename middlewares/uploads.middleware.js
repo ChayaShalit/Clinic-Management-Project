@@ -1,5 +1,6 @@
 import multer from "multer";
 import path from "path"
+import { AppError } from "../utils/AppError";
 
 
 const storageObj = multer.diskStorage({
@@ -12,7 +13,7 @@ const storageObj = multer.diskStorage({
       cb(err, null);
     }
   },
-  
+
   filename: function (req, file, cb) {
     try {
      //מגדיר סיומת יחודית לקובץ
@@ -33,7 +34,7 @@ const fileFilter = (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
-      cb(new Error('רק קבצי תמונה מותרים להעלאה!'), false);
+      cb(new AppError('רק קבצי תמונה מותרים להעלאה!'), false);
     }
   } catch (err) {
     cb(err, false);

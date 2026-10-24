@@ -1,11 +1,11 @@
 import { API_URL, TOKEN_KEY } from './config.js'
 
-const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}` })
+export const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}` })
 
 export const hasToken = () => Boolean(localStorage.getItem(TOKEN_KEY))
 
 // מחלץ את הודעת השגיאה שהשרת שלח, ושומר את קוד הסטטוס על השגיאה
-const readError = async (response, fallback) => {
+export const readError = async (response, fallback) => {
     const data = await response.json().catch(() => ({}))
     const error = new Error(data.message || data.error?.message || fallback)
     error.status = response.status

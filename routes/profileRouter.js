@@ -9,6 +9,6 @@ router.get('/',auth,getProfile)
 
 router.patch('/',auth,updateProfile)
 
-router.patch('/profileImaeg',auth,upload.single('profileImage'),UploadProfile)
+router.put('/profileImaeg',auth,upload.single('profileImage'),UploadProfile)
 
 export const profileRouter=router;

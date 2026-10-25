@@ -1,7 +1,21 @@
 import { requireAuth, logout } from '../services/authService.js';
 import { getUserProfile,updateUserProfile, uploadProfileImage } from '../services/profileService.js';
 import { UPLOADS_URL, HOME_BY_ROLE } from '../services/config.js';
-import { showMessage } from '../components/messages.js';
+
+
+
+// מציגה הודעה בתוך אלמנט קיים בדף
+//   el        - האלמנט (למשל <div id="apiMessage">)
+//   text      - הטקסט להצגה
+//   isSuccess - true להצלחה (ירוק), false לשגיאה (אדום)
+export function showMessage(el, text, isSuccess) {
+    el.textContent = text;
+    el.className = isSuccess
+        ? 'alert alert-success msg-success'
+        : 'alert alert-danger msg-error';
+    el.style.display = 'block';
+}
+
 
 const ROLE_LABEL = { patient: 'מטופל/ת', doctor: 'רופא/ה' };
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;

@@ -54,6 +54,13 @@ export const updateProfile = async (req,res,next)=>{
     //runValidators- מכריח לעשות בדיקות תקינות - ולידציות - גם בעדכון
     const opts = { new: true, runValidators: true };
 
+    // האימייל חייב להיות ייחודי. מוציאים את המשתמש עצמו מהבדיקה
+    if (userUpdate.email) {
+        const taken = await User.exists({ email: userUpdate.email, _id: { $ne: id } });
+        if (taken) throw new AppError('כתובת האימייל כבר רשומה במערכת', 409, 'duplicate error');
+    }
+
+
     // בודק כמה שדות נשלחו לעדכון יוזר ,אם האורך יותר מ 0 מעדכן , ואם הוא 0 שולף את הנתונים שקיימים במסד הנתונים
     const user = Object.keys(userUpdate).length
         ? await User.findByIdAndUpdate(id, userUpdate, opts)

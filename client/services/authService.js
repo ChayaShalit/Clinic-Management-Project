@@ -1,66 +1,30 @@
-import {API_URL} from './config.js'
+import { TOKEN_KEY, HOME_BY_ROLE } from './config.js';
 
-export async function loginUser(email, password) {
-    try{
-        const response = await fetch (`${API_URL}/auth/login`,{
-            method: 'POST',
-            //מה ששולחים בגוף הבקשה בפורמט json
-            headers: {
-                'Content-Type': 'application/json'},
-            //ממיר את האוביקט למחרוזת 
-            body: 
-                JSON.stringify({ email, password })
-            ,
-        });
+//מוציאה את הטוקן 
+const getPayload = () => {
+    try {
+        const part = localStorage.getItem(TOKEN_KEY).split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        return JSON.parse(atob(part));
+    } catch { return null; }
+};
 
-        const data = await response.json()
-        
-        if (!response.ok){
-            throw new Error(data.error?.message || 'שגיאה בהתחברות');
-        }
-        
-        
+//מחזירה את התפקיד מתוך הטוקן
+export const getRole = () => {
+    const payload = getPayload();
+    if (!payload || payload.exp * 1000 < Date.now()) return null;   // אין טוקן או שפג תוקפו
+    return payload.role;
+};
 
-        return data; // מחזיר את הנתונים (כמו ה-JWT) למסך שקרא לפונקציה
-    } 
-    catch (error) {
-        console.error('Login error:', error);
-        throw error;
-   
-    }
-} 
+//בודקת שאכן המשתמש שרוצה להכנס לדף , רשום והתפקיד שלו מתאים לדף
+export const requireAuth = (allowedRoles) => {
+    const role = getRole();
+    if (!role) { location.href = 'login.html'; return null; }
+    if (allowedRoles && !allowedRoles.includes(role)) { location.href = HOME_BY_ROLE[role]; return null; }
+    return role;
+};
 
-export async function registerUser(registerData) {
-
-try{
-    console.log('נכנסת לפונקציה ההרשמה בקובץ הראשי ')
-    console.log(API_URL)
-    
-    const response = await fetch(`${API_URL}/auth/register`,{
-        
-        method:'POST',
-         headers: {
-                'Content-Type': 'application/json'},
-            body: 
-                JSON.stringify(registerData)
-            ,
-        });   
-     console.log('נבנה אוביקט בקשה')
-
-        
-        const data = await response.json()
-         console.log('אוביקט התפך ל json')
-
-
-        if(!response.ok){
-            throw new Error(data.error?.message || 'שגיאה בהרשמה');
-        }
-
-
-        return data;
-    }
-    catch(error){
-          console.error('Login error:', error);
-        throw error;
-    }
-}
+//פונקציה של ניתוק שמחזירה לדף ההתחברות 
+export const logout = () => {
+    localStorage.clear();
+    location.href = 'login.html';
+};

@@ -1,4 +1,4 @@
-import { registerUser } from '../services/authService.js';
+import { registerUser } from '../services/registerService.js';
 
 const msgEl = document.getElementById('apiMessage');
 

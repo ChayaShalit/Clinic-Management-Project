@@ -1,4 +1,4 @@
-import { requireAuth, logout } from '../services/auth.js';
+import { requireAuth, logout } from '../services/authService.js';
 import { getUserProfile,updateUserProfile, uploadProfileImage } from '../services/profileService.js';
 import { UPLOADS_URL, HOME_BY_ROLE } from '../services/config.js';
 import { showMessage } from '../components/messages.js';

@@ -1,7 +1,7 @@
 import cron from 'node-cron';
 import { sendAllTomorrowReminders }  from '../controllers/reminderController.js';
 
-export const startReminderJob = () => {
-     cron.schedule('0 20 * * *', () => { sendAllTomorrowReminders(); }, { timezone: 'Asia/Jerusalem' });
-     //לצורך העלה שיקלוט את השעה ביממה לפי אזור זמן
-   }
+cron.schedule('0 20 * * *', async () => {
+     try { await sendAllTomorrowReminders(); }
+     catch (error) { console.error('[תזכורות] ההרצה נכשלה:', error.message); }
+}, { timezone: 'Asia/Jerusalem' });

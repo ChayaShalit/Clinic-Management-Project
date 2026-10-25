@@ -1,7 +1,7 @@
 import Appointment from '../models/Appointment.model.js';
 import PDFDocument from 'pdfkit';
 import transporter from '../utils/mailer.js';
-
+import { buildHtml, CLINIC } from '../utils/emailTemplate.js';
 const getAppointmentsForTomorrow = async () => {
     const start = new Date();
     start.setDate(start.getDate() + 1);
@@ -14,15 +14,32 @@ const getAppointmentsForTomorrow = async () => {
         status: 'confirmed',
         wantsReminder: true,
         reminderSent: { $ne: true }
-    });
+    }).populate({ path: 'doctorId', populate: { path: 'userId', select: 'name' } })
 };
 
 const sendReminderEmail = async (appointment) => {
+    const date = appointment.date.toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+    //מבטיח ששולח יום נכון כי התאריכים נשמרים במסד בחצות לפי UTC
+    const doctor = appointment.doctorId?.userId?.name ? `ד״ר ${appointment.doctorId.userId.name}` : 'הרופא/ה';
     const mail = {
-        from: process.env.EMAIL_USER,
+        from: `"${CLINIC}" <${process.env.EMAIL_USER}>`,
         to: appointment.patientEmail,
-        subject: `שלום${appointment.patientName} תזכורת לתור מחר `,
-        text: `שלום ${appointment.patientName},\n\nזוהי תזכורת לתור שלך מחר, בתאריך ${appointment.date.toLocaleDateString('he-IL')} בשעה ${appointment.time}.\n\nבברכה,\nצוות המרפאה`
+        subject: `תזכורת: התור שלך מחר בשעה ${appointment.time}`, 
+        text: `שלום ${appointment.patientName},\n\nזוהי תזכורת לתור שלך מחר, ${date} בשעה ${appointment.time}.\n\nבברכה,\n${CLINIC}`,
+        html: buildHtml({
+            preheader: `תזכורת: יש לך תור מחר בשעה ${appointment.time}`,
+            title: 'תזכורת: יש לך תור מחר',
+            greeting: `שלום ${appointment.patientName},`,
+            intro: `רצינו להזכיר לך על התור שלך מחר אצל ${doctor}.`,
+            rows: [
+                ['רופא/ה', doctor],
+                ['תאריך', date],
+                ['שעה', appointment.time],
+                ['סוג הטיפול', appointment.treatmentType || 'לא צוין'],
+            ],
+            note: 'צריך לבטל או לשנות? אפשר ליצור קשר עם המרפאה בטלפון, ונשמח לעזור. כדאי להגיע כ-10 דקות לפני השעה.'
+        })
+   
     };
     await transporter.sendMail(mail);
 };
@@ -52,22 +69,5 @@ const sendAllTomorrowReminders = async () => {
 כלומר לכל מטופל נוצר מערך ממהמאפ שמנסים לשלוח לו מייל 
 הפורמיס אול אומר לשלוח לכלום בייחד רק  אחרי שהפעולה הזו נגמרה אפשר לעבור הלאה 
  */
-const generatePDFReport = async (req, res) => {
-    const appointments = await getAppointmentsForTomorrow();
-    const doc = new PDFDocument();
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'attachment; filename=tomorrow_appointments.pdf');
-    doc.pipe(res);
-    doc.fontSize(16).text('תזכורת לתורים מחר', { align: 'center' });
-    doc.moveDown();
-    appointments.forEach((appointment, index) => {
-        doc.fontSize(12).text(`תור ${index + 1}:`);
-        doc.text(`שם המטופל: ${appointment.patientName}`);
-    });
-    doc.end();
-};
-//זמני רק בשביל שהשרת ירוץ
-const getAllTomorrowReminders = (req, res) => {
-    res.status(501).json({ message: "Not implemented yet" });
-};
-export { getAppointmentsForTomorrow, sendAllTomorrowReminders, generatePDFReport ,getAllTomorrowReminders};
+
+export { getAppointmentsForTomorrow, sendAllTomorrowReminders ,getAllTomorrowReminders};

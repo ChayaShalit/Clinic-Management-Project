@@ -20,7 +20,7 @@ const isMailConfigured = () => Boolean(process.env.EMAIL_USER && process.env.EMA
 
 // תאריך בפורמט YYYY-MM-DD (או Date) ליום ותאריך בעברית
 const parseDate = (value) => {
-    if (value instanceof Date) return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+    if (value instanceof Date) return new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
     const [y, m, d] = String(value).slice(0, 10).split('-').map(Number);
     return new Date(y, m - 1, d);
 };

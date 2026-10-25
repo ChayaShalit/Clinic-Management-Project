@@ -1,5 +1,5 @@
 import { requireAuth, logout } from '../services/authService.js';
-import { getUserProfile,updateUserProfile, uploadProfileImage } from '../services/profileService.js';
+import { getUserProfile, updateUserProfile, uploadProfileImage } from '../services/profileService.js';
 import { UPLOADS_URL, HOME_BY_ROLE } from '../services/config.js';
 
 
@@ -9,11 +9,11 @@ import { UPLOADS_URL, HOME_BY_ROLE } from '../services/config.js';
 //   text      - הטקסט להצגה
 //   isSuccess - true להצלחה (ירוק), false לשגיאה (אדום)
 export function showMessage(el, text, isSuccess) {
-    el.textContent = text;
-    el.className = isSuccess
-        ? 'alert alert-success msg-success'
-        : 'alert alert-danger msg-error';
-    el.style.display = 'block';
+  el.textContent = text;
+  el.className = isSuccess
+    ? 'alert alert-success msg-success'
+    : 'alert alert-danger msg-error';
+  el.style.display = 'block';
 }
 
 
@@ -59,11 +59,6 @@ if (role === 'patient') {
   $('medicalNotes').addEventListener('input', updateNotesCount);
 }
 
-if (role === 'doctor') {
-  $('workStartTime').addEventListener('input', checkHours);
-  $('workEndTime').addEventListener('input', checkHours);
-}
-
 /* ---------- עזרים ---------- */
 function setAvatar(fileName) {
   img.onerror = () => { img.onerror = null; img.src = PLACEHOLDER; };
@@ -76,20 +71,12 @@ function updateNotesCount() {
   $('notesCount').textContent = $('medicalNotes').value.length;
 }
 
-// שעת הסיום חייבת להיות אחרי שעת ההתחלה (פורמט HH:MM אפשר להשוות כטקסט)
-function checkHours() {
-  const start = $('workStartTime').value;
-  const end = $('workEndTime');
-  end.setCustomValidity(start && end.value && start >= end.value ? 'invalid' : '');
-}
-
 // בונה את מה שנשלח לשרת
 function buildPayload() {
   const data = Object.fromEntries(new FormData(form));   // אימייל וקבוצת התפקיד השני לא נכללים
   for (const [key, value] of Object.entries(data)) {
     if (value === '' && !CLEARABLE.includes(key)) delete data[key];
   }
-  if (role === 'doctor') data.dayOff = data.dayOff || null;   // null = ללא יום חופשי
   return data;
 }
 
@@ -123,7 +110,6 @@ async function loadProfile() {
 /* ---------- שמירת פרטים ---------- */
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
-  if (role === 'doctor') checkHours();
   form.classList.add('was-validated');
   if (!form.checkValidity()) return;            // ולידציה בצד לקוח
 

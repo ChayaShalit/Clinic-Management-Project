@@ -32,7 +32,7 @@ export async function updateUserProfile (body){
         body: JSON.stringify(body)
     }), 'שגיאה בעדכון הפרופיל');
 }
-/
+
 
 export async function uploadProfileImage (file){
     

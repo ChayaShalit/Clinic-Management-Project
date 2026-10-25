@@ -4,6 +4,10 @@ import { AppError } from "../utils/AppError.js";
 
 
 const storageObj = multer.diskStorage({
+  /**
+   * מטרה: קובעת את תיקיית היעד שבה יישמרו הקבצים המועלים על הדיסק בשרת.
+   * מחזירה: אינו מחזיר ערך ישירות, אלא מעביר בקולבק (Callback) את נתיב התיקייה ('uploads/') או שגיאה.
+   */
 
   destination: function (req, file, cb) {
     try {
@@ -13,6 +17,11 @@ const storageObj = multer.diskStorage({
       cb(err, null);
     }
   },
+
+  /**
+   * מטרה: יוצר ומגדיר שם קובץ ייחודי עבור הקובץ המועלא כדי למנוע התנגשויות שמות במערכת.
+   * מחזירה: אינו מחזיר ערך ישירות, אלא מעביר בקולבק את שם הקובץ החדש  או שגיאה.
+   */
 
   filename: function (req, file, cb) {
     try {
@@ -28,6 +37,11 @@ const storageObj = multer.diskStorage({
     }
   }
 });
+
+/**
+ * מטרה: מסנן את הקבצים המועלים ומוודא שרק קבצי תמונה (Mimetype שמתחיל ב-image/) מורשים להיכנס למערכת.
+ * מחזירה: אינו מחזיר ערך ישירות, אלא מעביר בקולבק בוליאני (true לאישור או false לדחייה עם אובייקט AppError) או שגיאה.
+ */
 
 const fileFilter = (req, file, cb) => {
   try {

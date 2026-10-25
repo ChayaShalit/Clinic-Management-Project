@@ -1,5 +1,5 @@
 import { requireAuth, logout } from '../services/auth.js';
-import { getProfile, updateProfile, uploadProfileImage } from '../apiService.js';
+import { getUserProfile,updateUserProfile, uploadProfileImage } from '../services/profileService.js';
 import { UPLOADS_URL, HOME_BY_ROLE } from '../services/config.js';
 import { showMessage } from '../components/messages.js';
 
@@ -86,7 +86,7 @@ const errorText = (error) =>
 async function loadProfile() {
   setAvatar(null);
   try {
-    const { profile } = await getProfile();
+    const { profile } = await getUserProfile();
     const { user, details } = profile;
 
     const values = { ...details, ...user };
@@ -118,7 +118,7 @@ form.addEventListener('submit', async (e) => {
   msg.style.display = 'none';
 
   try {
-    const { profile } = await updateProfile(buildPayload());
+    const { profile } = await updateUserProfile(buildPayload());
     localStorage.setItem('userName', profile.user.name);   // שהברכה בדף הבית תתעדכן
     $('displayName').textContent = profile.user.name;
     showMessage(msg, 'הפרופיל עודכן בהצלחה', true);

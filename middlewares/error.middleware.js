@@ -13,6 +13,11 @@ export const errorHandler = (err, req, res, next) => {
         status = 401; type = 'token error'; message = 'טוקן לא תקין או שפג תוקפו';
     }
 
+    if (err.name === 'MulterError') {
+        status = 400; type = 'upload error';
+        message = err.code === 'LIMIT_FILE_SIZE' ? 'הקובץ גדול מדי (עד 5MB)' : 'שגיאה בהעלאת הקובץ';
+    }
+
     console.error(err.stack);
     res.status(status).json({
         error: { type, message, ...(env.NODE_ENV !== 'production' && { stack: err.stack }) }//נשלח ללקוח רק כשלא בפרודקשן. כך לא חושפים פרטים פנימיים כשהאתר באוויר.

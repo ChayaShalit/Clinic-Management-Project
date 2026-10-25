@@ -32,7 +32,7 @@ export const getProfile = async ( req,res,next)=>{
 }
 
 
-    const USER_FIELDS = ['name', 'phone','role','email','tz'];
+    const USER_FIELDS = ['name', 'phone','email'];
     
     // מחזיר אובייקט עם השדות שברשימה בלבד
     const ObjectOfUserField = (obj, keys) =>
@@ -54,7 +54,7 @@ export const updateProfile = async (req,res,next)=>{
     //runValidators- מכריח לעשות בדיקות תקינות - ולידציות - גם בעדכון
     const opts = { new: true, runValidators: true };
 
-    // האימייל חייב להיות ייחודי. מוציאים את המשתמש עצמו מהבדיקה
+    // האימייל חייב להיות ייחודי. מוציאים את המשתמש עצמו לצורך הבדיקה
     if (userUpdate.email) {
         const taken = await User.exists({ email: userUpdate.email, _id: { $ne: id } });
         if (taken) throw new AppError('כתובת האימייל כבר רשומה במערכת', 409, 'duplicate error');

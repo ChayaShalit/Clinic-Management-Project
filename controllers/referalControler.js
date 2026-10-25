@@ -1,18 +1,21 @@
-import Referal
-from "../models/Referal.js";
+import Referal from "../models/Referal.js";
 import { User } from "../models/User.model.js";
 import Doctor from "../models/Doctor.model.js";
+import { AppError } from "../utils/AppError.js";
 import { sendReferalNotification } from "../services/notification.service.js";
+
+
+
 const createReferal = async (req, res) => {
-    try {
-        const doctor = await Doctor.findOne({ userId: req.currentUser.id });
+ 
+        const doctor = await Doctor.findOne({ userId: req.currentUser.id }).populate('userId', 'name');
         if (!doctor) {
-            return res.status(403).json({ message: 'לא נמצאה רשומת רופא למשתמש המחובר' });
+            throw new AppError('לא נמצאה רשומת רופא למשתמש המחובר', 403, 'auth error')
         }
 
         const patientUser = await User.findOne({ tz: req.body.patientTz, role: 'patient' });
         if (!patientUser) {
-            return res.status(404).json({ message: 'לא נמצא מטופל עם תעודת הזהות הזו' });
+            throw new AppError('לא נמצא מטופל עם תעודת הזהות הזו', 404, 'not found');
         }
 
         const newReferal = await Referal.create({
@@ -21,24 +24,20 @@ const createReferal = async (req, res) => {
             patientId: patientUser._id,
             attachedFile: req.file ? req.file.filename : null
         });
-        //{kkkkkkk
-        const doctorUser = await User.findById(req.currentUser.id).select('name').catch(() => null);
+     
+
+        // המייל לא מעכב את התשובה, וכישלון בשליחה לא מפיל את יצירת ההפניה
+        //שליחה לפונקציה
         sendReferalNotification({
             to: patientUser.email,
             patientName: patientUser.name,
-            doctorName: doctorUser?.name,
+            doctorName: doctor.userId?.name,
             kindReferal: newReferal.kindReferal,
             hasAttachment: Boolean(newReferal.attachedFile)
-        });
-        //}
+        }).catch((error) => console.error('שליחת מייל הפניה נכשלה:', error.message));
+
         res.json(newReferal);
-    } catch (error) {
-        if (error.name === 'ValidationError') {
-            return res.status(400).json({ message: 'חסר או לא תקין פרטים' });
-        }
-        res.status(500).json({ message: 'error in create referal' });
-    }
-};
+    };
 /**
  * 
  הפונקציה מנסה ליצור הפניה כך שקובץ הוא לא חובה 
@@ -51,9 +50,9 @@ const getReferalForPatient = async (req, res) => {
     const patientId = req.params.id
     try {
         if (req.currentUser.role === 'patient' && String(req.currentUser.id) !== String(patientId)) {
-            return res.status(403).json({ message: "אין הרשאה לראות הפניות של משתמש אחר" })
+            throw new AppError('אין הרשאה לראות הפניות של משתמש אחר', 403, 'auth error');
         }
-        const referals = await Referal.find({ patientId: patientId })
+        const referals = await Referal.find({  patientId })
             .populate({ path: 'doctorId', populate: { path: 'userId', select: 'name' } })
         res.json(referals)
     } catch (error) {
@@ -67,15 +66,21 @@ const getReferalForPatient = async (req, res) => {
  אם הוא נפל בשגיאה מוזר 50 שזה שגיאת שרת
  */
 const markReferalAsRead=async(req ,res)=>{
-    const referalId=req.params.referalId
-    try{
-        const markReferal= await Referal.findByIdAndUpdate(referalId,{status:'read'})
-        res.json(markReferal)
+    
+  //* מסמנת שההפניה נקראה.רק המטופל / ת שההפניה שלהם יכולים לסמן אותה.
+        const referal= await Referal.findById(req.params.referalId);
+        if(!referal){
+            throw new AppError('ההפניה לא נמצאה', 404, 'not found');
 
     }
-    catch(error){
-        res.status(500).json({message:"error in update referal status"})
+    if(String(referal.patientId)!==String(req.doctorUser.id))
+        {
+
+        throw new AppError('אין הרשאה לעדכן הפניה של משתמש אחר', 403, 'auth error');
     }
+    referal.status = 'read';
+    await referal.save();
+    res.json(referal);
 }
 /**
  * הפונקציה מסמנת שההפניה נקראת 

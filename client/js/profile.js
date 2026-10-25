@@ -59,10 +59,7 @@ if (role === 'patient') {
   $('medicalNotes').addEventListener('input', updateNotesCount);
 }
 
-if (role === 'doctor') {
-  $('workStartTime').addEventListener('input', checkHours);
-  $('workEndTime').addEventListener('input', checkHours);
-}
+
 
 /* ---------- עזרים ---------- */
 function setAvatar(fileName) {
@@ -76,12 +73,6 @@ function updateNotesCount() {
   $('notesCount').textContent = $('medicalNotes').value.length;
 }
 
-// שעת הסיום חייבת להיות אחרי שעת ההתחלה (פורמט HH:MM אפשר להשוות כטקסט)
-function checkHours() {
-  const start = $('workStartTime').value;
-  const end = $('workEndTime');
-  end.setCustomValidity(start && end.value && start >= end.value ? 'invalid' : '');
-}
 
 // בונה את מה שנשלח לשרת
 function buildPayload() {
@@ -123,7 +114,6 @@ async function loadProfile() {
 /* ---------- שמירת פרטים ---------- */
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
-  if (role === 'doctor') checkHours();
   form.classList.add('was-validated');
   if (!form.checkValidity()) return;            // ולידציה בצד לקוח
 

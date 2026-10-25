@@ -97,35 +97,6 @@
             <input type="text" id="specialty" name="specialty" class="form-control" maxlength="100"
                    placeholder="לדוגמה: רפואת משפחה">
           </div>
-          <div class="col-md-6">
-            <label for="appointmentDuration" class="form-label">משך תור (בדקות)</label>
-            <input type="number" id="appointmentDuration" name="appointmentDuration"
-                   class="form-control" min="5" max="120" step="5">
-            <div class="invalid-feedback">יש להזין בין 5 ל-120 דקות.</div>
-          </div>
-          <div class="col-md-6">
-            <label for="workStartTime" class="form-label">שעת התחלה</label>
-            <input type="time" id="workStartTime" name="workStartTime" class="form-control">
-          </div>
-          <div class="col-md-6">
-            <label for="workEndTime" class="form-label">שעת סיום</label>
-            <input type="time" id="workEndTime" name="workEndTime" class="form-control">
-            <div class="invalid-feedback">שעת הסיום חייבת להיות אחרי שעת ההתחלה.</div>
-          </div>
-          <div class="col-md-6">
-            <label for="dayOff" class="form-label">יום חופשי קבוע</label>
-            <select id="dayOff" name="dayOff" class="form-select">
-              <option value="">ללא</option>
-              <option value="Sunday">ראשון</option>
-              <option value="Monday">שני</option>
-              <option value="Tuesday">שלישי</option>
-              <option value="Wednesday">רביעי</option>
-              <option value="Thursday">חמישי</option>
-              <option value="Friday">שישי</option>
-              <option value="Saturday">שבת</option>
-            </select>
-          </div>
-        </div>
       </fieldset>
 
       <div id="apiMessage" role="status" aria-live="polite" style="display: none;"></div>

@@ -9,7 +9,6 @@ import { startReminderJob } from './jobs/reminder.job.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 import { referalRouter } from './routes/referalRoutes.js'
 import { authRouter } from './routes/authRouter.js'
-import { patientRouter } from './routes/patientRouter.js';
 import { appointmentrouter } from './routes/appointmentRoutes.js'
 import { doctorRouter } from './routes/doctorRoutes.js'
 import { doctorScheduleRouter } from './routes/doctorScheduleRoutes.js'
@@ -41,11 +40,9 @@ app.use('/api/', referalRouter)
 
 app.use('/api/auth', authRouter)
 
-app.use('/api/patient', patientRouter)
-
 app.use('/api/', reminderRouter)
 
-app.use('api/profile/',profileRouter)
+app.use('/api/profile/',profileRouter)
 
 
 startReminderJob();

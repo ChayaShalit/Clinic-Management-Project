@@ -1,6 +1,5 @@
 import Appointment from '../models/Appointment.model.js';
-import transporter from '../utils/mailer.js';
-import { buildHtml, CLINIC } from '../utils/emailTemplate.js';
+import { sendReminderNotification } from '../services/notification.service.js';
 const getAppointmentsForTomorrow = async () => {
     const start = new Date();
     start.setDate(start.getDate() + 1);
@@ -47,19 +46,34 @@ const sendReminderEmail = async (appointment) => {
  * בפונקציה מגדירים אוביקט שבו יש את כתובת השולח ולאיפה לשלוח על ידי הכתובת שמגיעה מהמטופל
  * הנושא זה מה שיהיה כתוב בשורה השאונה של המייל 
  */
-
 const sendAllTomorrowReminders = async () => {
     const appointments = await getAppointmentsForTomorrow();
+    console.log(`[תזכורות] נמצאו ${appointments.length} תורים למחר עם תזכורת`);
+  
+
     await Promise.all(appointments.map(async (appointment) => {
         try {
-            await sendReminderEmail(appointment);
-            appointment.reminderSent = true;
-            await appointment.save();
+            const ok = await sendReminderNotification({
+                to: appointment.patientEmail,
+                patientName: appointment.patientName,
+                doctorName: appointment.doctorId?.userId?.name,
+                date: appointment.date,
+                time: appointment.time,
+                treatmentType: appointment.treatmentType
+            });
+            if (ok) {
+                appointment.reminderSent = true;
+                await appointment.save();
+                
+            }
         } catch (error) {
             console.error('שגיאה בשליחת תזכורת:', error.message);
         }
     }));
+
+
 };
+
 /**
 הפונקציה שולחת מייל לכל התורים שמחר 
 על ידי הפעלת הפונקציה שמחזירה את כל התורים שמחר ומכניסה בתוך משתנה 

@@ -6,6 +6,7 @@ import { AppError } from "../utils/AppError.js";
 //לשימוש בנתיבים מוגנים כגון: צפייה בפרופיל האישי, קביעת תור, או צפייה בהפניות רפואיות
 
 export const auth =async (req,res,next) => {
+    console.log('נכנסת לפונקציה האימות')
 
     try{
           const authHeader = req.headers.authorization;

@@ -20,12 +20,13 @@ const hebrewMessages = {
 
 // בודק את גוף הבקשה (ברירת מחדל) או את פרמטרי הכתובת (source = 'query') מול סכמת Joi
 export const validate = (schema, source = 'body') => (req, res, next) => {
+    console.log(`schema: ${schema}`)
 
     const activeSchema = typeof schema === 'function' ? schema(req) : schema;
     if (!activeSchema) return next(new AppError('אין הרשאה לפעולה זו', 403, 'auth error'));
 
 
-    const { error, value } = schema.validate(req[source], {
+    const { error, value } = activeSchema.validate(req[source], {
         abortEarly: false,// false אוסף את כל השגיאות ולא עוצר בראשונה
         stripUnknown: true,// מוחק שדות מיותרים שנשלחו
         messages: hebrewMessages,

@@ -35,26 +35,6 @@ export const createAppointmentSchema = Joi.object({
     })
 });
 
-// עדכון תור קיים. אפשר לשלוח רק חלק מהשדות
-export const updateAppointmentSchema = Joi.object({
-    date: Joi.string().pattern(DATE_PATTERN).messages({
-        'string.pattern.base': 'התאריך חייב להיות בפורמט שנה-חודש-יום',
-        'string.empty': 'נא לבחור תאריך'
-    }),
-    time: Joi.string().pattern(TIME_PATTERN).messages({
-        'string.pattern.base': 'יש להזין שעה בפורמט תקין (למשל 08:00)',
-        'string.empty': 'נא לבחור שעה'
-    }),
-    treatmentType: Joi.string().trim().max(50).allow('', null).messages({
-        'string.max': 'סוג הטיפול ארוך מדי'
-    }),
-    status: Joi.string().valid('confirmed', 'cancelled', 'completed').messages({
-        'any.only': 'סטטוס התור לא תקין'
-    })
-}).min(1).messages({
-    'object.min': 'לא נשלח שום שדה לעדכון'
-});
-
 // שעות העבודה של הרופא
 export const doctorScheduleSchema = Joi.object({
     workStartTime: timeField('נא להזין שעת התחלה'),

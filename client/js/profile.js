@@ -60,7 +60,6 @@ if (role === 'patient') {
 }
 
 
-
 /* ---------- עזרים ---------- */
 function setAvatar(fileName) {
   img.onerror = () => { img.onerror = null; img.src = PLACEHOLDER; };

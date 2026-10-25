@@ -4,219 +4,191 @@ import { User } from '../models/User.model.js';
 import PDFDocument from 'pdfkit';
 import Doctor from '../models/Doctor.model.js';
 import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { sendAppointmentConfirmation } from '../services/notification.service.js';
+import { AppError } from '../utils/AppError.js';
+
+// שגיאות נזרקות עם AppError ומטופלות ב-error middleware (Express 5 תופס גם שגיאות של async),
+// ולכן אין כאן try/catch. בדיקות תקינות של הנתונים נעשות לפני כן, עם Joi בקובץ הנתיבים
+
+// ב-PDF מספרים בתוך טקסט עברי מתהפכים, אז הופכים אותם מראש
+const ltr = (text) => [...String(text)].reverse().join('');
+
+// הגדרות טקסט עברי ב-PDF: יישור לימין וכיוון כתיבה מימין לשמאל
+const RTL_TEXT = { align: 'right', features: ['rtla'] };
+
+// שליפת שם המטופלת דרך משתמש המטופלת (משמש את רשימת התורים של הרופא ואת ה-PDF)
+const POPULATE_PATIENT_NAME = {
+    path: 'patientId',
+    populate: { path: 'userId', select: 'name' }
+};
+
+const getCurrentPatient = async (currentUser) => {
+    const patient = await Patient.findOne({ userId: currentUser.id });
+
+    if (!patient) {
+        throw new AppError('לא נמצאה רשומת מטופל למשתמש המחובר', 404, 'not found');
+    }
+
+    return patient;
+};
+
+const getCurrentDoctor = async (currentUser) => {
+    const doctor = await Doctor.findOne({ userId: currentUser.id });
+
+    if (!doctor) {
+        throw new AppError('רופא לא נמצא', 404, 'not found');
+    }
+
+    return doctor;
+};
+
+// בודק שהתור שייך למשתמש המחובר: המטופלת שקבעה אותו, או הרופא שלו
+const canManageAppointment = async (appointment, currentUser) => {
+    if (currentUser.role === 'patient') {
+        const patient = await Patient.findOne({ userId: currentUser.id });
+        return Boolean(patient) && String(appointment.patientId) === String(patient._id);
+    }
+
+    if (currentUser.role === 'doctor') {
+        const doctor = await Doctor.findOne({ userId: currentUser.id });
+        return Boolean(doctor) && String(appointment.doctorId) === String(doctor._id);
+    }
+
+    return false;
+};
+
+// שולף תור לפי מזהה, ומוודא שהוא קיים ושהמשתמש המחובר רשאי לטפל בו (action: 'לשנות' או 'לבטל')
+const getManagedAppointment = async (id, currentUser, action) => {
+    const appointment = await Appointment.findById(id);
+
+    if (!appointment) {
+        throw new AppError('התור לא נמצא', 404, 'not found');
+    }
+
+    if (!(await canManageAppointment(appointment, currentUser))) {
+        throw new AppError(`אין לך הרשאה ${action} תור זה`, 403, 'auth error');
+    }
+
+    return appointment;
+};
+
+// מוודא שאין תור מאושר אחר אצל אותו רופא באותה שעה
+// excludeId: התור שמעדכנים, כדי שלא יתנגש בעצמו
+const assertSlotFree = async ({ doctorId, date, time, excludeId }) => {
+    const filter = { doctorId, date, time, status: 'confirmed' };
+
+    if (excludeId) {
+        filter._id = { $ne: excludeId };
+    }
+
+    if (await Appointment.exists(filter)) {
+        throw new AppError('השעה שבחרת כבר תפוסה אצל רופא זה. אנא בחרו זמן אחר.', 409, 'conflict');
+    }
+};
+
 // המטופלת נקבעת לפי ההתחברות (הטוקן), והרופא נבחר מהרשימה
 export const createAppointment = async (req, res) => {
-    try {
-        const { doctorId, date, time, treatmentType, wantsReminder } = req.body;
+    const { doctorId, date, time, treatmentType, wantsReminder } = req.body;
 
-        if (!doctorId || !date || !time) {
-            return res.status(400).json({ message: "אנא בחרו רופא, תאריך ושעה" });
-        }
+    const patient = await getCurrentPatient(req.currentUser);
+    const user = await User.findById(req.currentUser.id);
 
-        const patient = await Patient.findOne({ userId: req.currentUser.id });
-        if (!patient) {
-            return res.status(404).json({ message: "לא נמצאה רשומת מטופל למשתמש המחובר" });
-        }
-        const user = await User.findById(req.currentUser.id);
+    await assertSlotFree({ doctorId, date, time });
 
-        const existingAppointment = await Appointment.findOne({
-            doctorId: doctorId,
-            date: date,
-            time: time,
-            status: 'confirmed'
-        });
+    const newAppointment = new Appointment({
+        patientId: patient._id,
+        doctorId,
+        date,
+        time,
+        treatmentType,
+        wantsReminder,
+        patientName: user.name,
+        patientEmail: user.email
+    });
 
-        if (existingAppointment) {
-            return res.status(409).json({ message: "השעה שבחרת כבר תפוסה אצל רופא זה. אנא בחרו זמן אחר." });
-        }
+    await newAppointment.save();
 
-        const newAppointment = new Appointment({
-            patientId: patient._id,
-            doctorId,
-            date,
-            time,
-            treatmentType,
-            wantsReminder: wantsReminder === true,
-            patientName: user.name,
-            patientEmail: user.email
-        });
-//{kkkkkkkk
-        await newAppointment.save();
-        const doctor = await Doctor.findById(doctorId).populate('userId', 'name').catch(() => null);
-        sendAppointmentConfirmation({
-            to: user.email,
-            patientName: user.name,
-            doctorName: doctor?.userId?.name,
-            date,
-            time,
-            treatmentType,
-            durationMinutes: doctor?.appointmentDuration,
-            wantsReminder: wantsReminder === true
-        });
-        //kkkk}
-        res.status(201).json({
-            message: "התור נקבע בהצלחה!",
-            appointment: newAppointment
-        });
+    const doctor = await Doctor.findById(doctorId).populate('userId', 'name').catch(() => null);
 
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "שגיאת שרת בעת קביעת התור" });
-    }
+    // המייל לא מעכב את התשובה, וכישלון בשליחה לא מפיל את הקביעה
+    sendAppointmentConfirmation({
+        to: user.email,
+        patientName: user.name,
+        doctorName: doctor?.userId?.name,
+        date,
+        time,
+        treatmentType,
+        durationMinutes: doctor?.appointmentDuration,
+        wantsReminder
+    }).catch((error) => console.error('שליחת מייל אישור נכשלה:', error.message));
+
+    res.status(201).json({
+        message: 'התור נקבע בהצלחה!',
+        appointment: newAppointment
+    });
 };
 
-// פונקציה לעדכון/דחיית תור
+// עדכון/דחיית תור. הגוף כבר עבר Joi, אז יש בו רק date, time, treatmentType ו-status
 export const updateAppointment = async (req, res) => {
-    try {
-        const { id } = req.params; // שולפים את מזהה התור מתוך הכתובת (URL)
-        const { date, time, treatmentType, status } = req.body; // הנתונים החדשים לעדכון
-        const currentAppointment = await Appointment.findById(id);
+    const { id } = req.params;
+    const { date, time } = req.body;
 
-        if (!currentAppointment) {
-            return res.status(404).json({ message: "התור לא נמצא" });
-        }
-        if (date || time) {
-            const conflict = await Appointment.findOne({
-                _id: { $ne: id },
-                doctorId: currentAppointment.doctorId,
-                date: date || currentAppointment.date,
-                time: time || currentAppointment.time,
-                status: 'confirmed'
-            });
+    const currentAppointment = await getManagedAppointment(id, req.currentUser, 'לשנות');
 
-            if (conflict) {
-                return res.status(409).json({ message: "השעה שבחרת כבר תפוסה אצל רופא זה. אנא בחרו זמן אחר." });
-            }
-        }
-        // מוצאים את התור לפי ה-ID ומעדכנים אותו. {new: true} אומר שיחזיר לנו את הנתונים המעודכנים.
-        const updatedAppointment = await Appointment.findByIdAndUpdate(
-            id,
-            { date, time, treatmentType, status },
-            { new: true }
-        );
-
-        if (!updatedAppointment) {
-            return res.status(404).json({ message: "התור לא נמצא" });
-        }
-
-        res.status(200).json({ message: "התור עודכן בהצלחה", appointment: updatedAppointment });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "שגיאת שרת בעת עדכון התור" });
+    if (date || time) {
+        await assertSlotFree({
+            doctorId: currentAppointment.doctorId,
+            date: date || currentAppointment.date,
+            time: time || currentAppointment.time,
+            excludeId: id
+        });
     }
+
+    const updatedAppointment = await Appointment.findByIdAndUpdate(id, req.body, { new: true });
+
+    res.status(200).json({ message: 'התור עודכן בהצלחה', appointment: updatedAppointment });
 };
 
-// פונקציה לביטול (מחיקת) תור
+// ביטול (מחיקת) תור
 export const deleteAppointment = async (req, res) => {
-    try {
-        const { id } = req.params;
+    const appointment = await getManagedAppointment(req.params.id, req.currentUser, 'לבטל');
 
-        // מוצאים את התור לפי ה-ID ומוחקים אותו
-        const deletedAppointment = await Appointment.findByIdAndDelete(id);
+    await appointment.deleteOne();
 
-        if (!deletedAppointment) {
-            return res.status(404).json({ message: "התור לא נמצא" });
-        }
-
-        res.status(200).json({ message: "התור בוטל ונמחק בהצלחה" });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "שגיאת שרת בעת ביטול התור" });
-    }
+    res.status(200).json({ message: 'התור בוטל בהצלחה' });
 };
 
-// פונקציה לשליפת התורים של רופא ספציפי
+// שליפת התורים של רופא ספציפי
 export const getDoctorAppointments = async (req, res) => {
-    try {
-        const { doctorId } = req.params;
+    const appointments = await Appointment.find({ doctorId: req.params.doctorId }).sort({ time: 1 });
 
-        // שולפים מהמסד את כל התורים של הרופא וממיינים אותם לפי השעה (1 = סדר עולה)
-        const appointments = await Appointment.find({ doctorId }).sort({ time: 1 });
-
-        if (!appointments || appointments.length === 0) {
-            return res.status(404).json({ message: "לא נמצאו תורים לרופא זה" });
-        }
-
-        res.status(200).json({ appointments });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "שגיאת שרת בעת שליפת התורים" });
-    }
+    res.status(200).json({ appointments });
 };
 
 export const getMyAppointments = async (req, res) => {
-    try {
-        const patient = await Patient.findOne({
-            userId: req.currentUser.id
-        });
+    const patient = await getCurrentPatient(req.currentUser);
 
-        if (!patient) {
-            return res.status(404).json({
-                message: 'מטופל לא נמצא'
-            });
-        }
+    const appointments = await Appointment.find({ patientId: patient._id })
+        .populate({ path: 'doctorId', populate: { path: 'userId', select: 'name' } })
+        .sort({ date: 1, time: 1 });
 
-        const appointments = await Appointment.find({
-            patientId: patient._id
-        })
-            .populate({ path: 'doctorId', populate: { path: 'userId', select: 'name' } })
-            .sort({ date: 1, time: 1 });
-
-        res.status(200).json({ appointments });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            message: 'שגיאת שרת בעת שליפת התורים'
-        });
-    }
+    res.status(200).json({ appointments });
 };
+
 export const getMyDoctorAppointments = async (req, res) => {
-    try {
-        const doctor = await Doctor.findOne({
-            userId: req.currentUser.id
-        });
+    const doctor = await getCurrentDoctor(req.currentUser);
 
-        if (!doctor) {
-            return res.status(404).json({
-                message: 'רופא לא נמצא'
-            });
-        }
+    const appointments = await Appointment.find({ doctorId: doctor._id })
+        .populate(POPULATE_PATIENT_NAME)
+        .sort({ date: 1, time: 1 });
 
-        const appointments = await Appointment.find({
-            doctorId: doctor._id
-        })
-            .populate({
-                path: 'patientId',
-                populate: {
-                    path: 'userId',
-                    select: 'name'
-                }
-            })
-            .sort({ date: 1, time: 1 });
-
-        return res.status(200).json({ appointments });
-
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({
-            message: 'שגיאה בשליפת תורי הרופא'
-        });
-    }
+    res.status(200).json({ appointments });
 };
 
-export const downloadTodayAppointmentsPDF = async (req, res) => {
+export const downloadTodayAppointmentsPDF = async (req, res, next) => {
     try {
-        const doctor = await Doctor.findOne({
-            userId: req.currentUser.id
-        });
-
-        if (!doctor) {
-            return res.status(404).json({
-                message: 'רופא לא נמצא'
-            });
-        }
+        const doctor = await getCurrentDoctor(req.currentUser);
 
         const now = new Date();
 
@@ -231,22 +203,14 @@ export const downloadTodayAppointmentsPDF = async (req, res) => {
             date: { $gte: start, $lte: end },
             status: { $ne: 'cancelled' }
         })
-            .populate({
-                path: 'patientId',
-                populate: {
-                    path: 'userId',
-                    select: 'name'
-                }
-            })
+            .populate(POPULATE_PATIENT_NAME)
             .sort({ time: 1 });
 
-        // משתמשים בגופן עברי שקיים ב-Windows
-        const fontPath = 'C:/Windows/Fonts/arial.ttf';
+        // גופן עברי שנמצא בתוך הפרויקט, כדי שיעבוד גם בשרת בענן
+        const fontPath = fileURLToPath(new URL('../fonts/Heebo-Regular.ttf', import.meta.url));
 
         if (!fs.existsSync(fontPath)) {
-            return res.status(500).json({
-                message: 'לא נמצא גופן עברי ליצירת PDF'
-            });
+            throw new AppError('לא נמצא גופן עברי ליצירת PDF', 500, 'server error');
         }
 
         const doc = new PDFDocument({
@@ -263,36 +227,29 @@ export const downloadTodayAppointmentsPDF = async (req, res) => {
         doc.pipe(res);
         doc.font(fontPath);
 
-        doc.fontSize(20).text('תורים להיום', {
-            align: 'right'
-        });
+        doc.fontSize(20).text('תורים להיום', RTL_TEXT);
 
         doc.moveDown();
 
-        doc.fontSize(12).text(
-            now.toLocaleDateString('he-IL'),
-            { align: 'right' }
-        );
+        doc.fontSize(12).text(now.toLocaleDateString('he-IL'), RTL_TEXT);
 
         doc.moveDown();
 
         if (appointments.length === 0) {
-            doc.text('אין תורים להיום', {
-                align: 'right'
-            });
+            doc.text('אין תורים להיום', RTL_TEXT);
         } else {
             appointments.forEach((appointment, index) => {
                 const patientName =
                     appointment.patientId?.userId?.name || 'לא ידוע';
 
                 doc.fontSize(12).text(
-                    `${index + 1}. ${appointment.time} | ${patientName}`,
-                    { align: 'right' }
+                    `${index + 1}. ${ltr(appointment.time)} | ${patientName}`,
+                    RTL_TEXT
                 );
 
                 doc.text(
                     `סוג טיפול: ${appointment.treatmentType || 'לא צוין'}`,
-                    { align: 'right' }
+                    RTL_TEXT
                 );
 
                 doc.moveDown();
@@ -302,40 +259,26 @@ export const downloadTodayAppointmentsPDF = async (req, res) => {
         doc.end();
 
     } catch (error) {
-        console.error('PDF error:', error);
-
-        if (!res.headersSent) {
-            return res.status(500).json({
-                message: 'שגיאה ביצירת PDF'
-            });
+        // כאן נשאר try/catch כי אם כבר התחלנו לשלוח את הקובץ אי אפשר לשלוח תשובת שגיאה רגילה
+        if (res.headersSent) {
+            console.error('PDF error:', error);
+            return res.destroy(error);
         }
 
-        res.destroy(error);
+        next(error);
     }
 };
 
 // השעות התפוסות אצל רופא ביום מסוים, כדי שהמטופלת תראה רק שעות פנויות
+// הרופא והתאריך מגיעים בכתובת (query) ועוברים Joi בקובץ הנתיבים
 export const getAvailability = async (req, res) => {
-    try {
-        const { doctorId, date } = req.query;
+    const { doctorId, date } = req.query;
 
-        if (!doctorId || !date) {
-            return res.status(400).json({ message: "חסרים רופא או תאריך" });
-        }
+    const appointments = await Appointment.find({
+        doctorId,
+        date,
+        status: 'confirmed'
+    }).select('time');
 
-        const appointments = await Appointment.find({
-            doctorId,
-            date,
-            status: 'confirmed'
-        }).select('time');
-
-        res.status(200).json({ taken: appointments.map(a => a.time) });
-
-    } catch (error) {
-        if (error.name === 'CastError') {
-            return res.status(400).json({ message: "מזהה רופא או תאריך לא תקינים" });
-        }
-        console.error(error);
-        res.status(500).json({ message: "שגיאת שרת בבדיקת זמינות" });
-    }
+    res.status(200).json({ taken: appointments.map(a => a.time) });
 };

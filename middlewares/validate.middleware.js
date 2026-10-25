@@ -1,9 +1,9 @@
 import { AppError } from '../utils/AppError.js';
 
-export const validate = (schema) => (req, res, next) => {
-    console.log('נכנס לוולידציה')
-    const { error, value } = schema.validate(req.body, {
-        abortEarly: false,// עוצר אחרי שגיאה אחת true מחזיר מחרוזת ארוכה מכל השגיאות , אם יהיה
+// בודק את גוף הבקשה (ברירת מחדל) או את פרמטרי הכתובת (source = 'query') מול סכמת Joi
+export const validate = (schema, source = 'body') => (req, res, next) => {
+    const { error, value } = schema.validate(req[source], {
+        abortEarly: false,// false אוסף את כל השגיאות ולא עוצר בראשונה
         stripUnknown: true// מוחק שדות מיותרים שנשלחו
     });
     if (error) {
@@ -11,6 +11,7 @@ export const validate = (schema) => (req, res, next) => {
 
         return next(new AppError(message, 400, 'validation error'));
     }
-    req.body = value;
+    // ב-Express 5 אי אפשר לדרוס את req.query, לכן מחליפים רק את גוף הבקשה
+    if (source === 'body') req.body = value;
     next();
 };

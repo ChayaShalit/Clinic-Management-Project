@@ -1,16 +1,8 @@
-import { API_URL, TOKEN_KEY } from './config.js'
+import { API_URL } from './config.js'
+import { authHeaders, readError } from './appointmentService.js'
 
-const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY)}` })
-
-export const hasToken = () => Boolean(localStorage.getItem(TOKEN_KEY))
-
-// מחלץ את הודעת השגיאה שהשרת שלח, ושומר את קוד הסטטוס על השגיאה
-const readError = async (response, fallback) => {
-    const data = await response.json().catch(() => ({}))
-    const error = new Error(data.message || data.error?.message || fallback)
-    error.status = response.status
-    return error
-}
+// פונקציות העזר של הבקשות (טוקן והודעות שגיאה) מוגדרות פעם אחת ב-appointmentService.js
+export { hasToken } from './appointmentService.js'
 
 // שעות העבודה של הרופא המחובר
 export const getMySchedule = async () => {

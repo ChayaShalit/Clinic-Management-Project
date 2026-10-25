@@ -14,6 +14,7 @@ import { appointmentrouter } from './routes/appointmentRoutes.js'
 import { doctorRouter } from './routes/doctorRoutes.js'
 import { doctorScheduleRouter } from './routes/doctorScheduleRoutes.js'
 import { reminderRouter } from './routes/reminderroutes.js'
+import {profileRouter} from './routes/profileRouter.js'
 
 
 const app = express();
@@ -22,15 +23,13 @@ connectDB();
 
 app.use('/uploads', express.static('uploads'));
 
+app.use('/files', express.static('files'))
+
 app.use(express.json());
 
 app.use(morgan('dev'));
 
 app.use(cors());
-
-app.use('/files', express.static('files'))
-
-// app.use('/api/appointments', appointmentrouter)
 
 app.use('/api/appointments', appointmentrouter)
 
@@ -46,9 +45,8 @@ app.use('/api/patient', patientRouter)
 
 app.use('/api/', reminderRouter)
 
-// app.get('/api/health',(req,res)=>{
-//     res.status(200).json({stutus:'ok',message:'השרת עובד בהצלחה'})
-// })
+app.use('api/profile',profileRouter)
+
 
 startReminderJob();
 

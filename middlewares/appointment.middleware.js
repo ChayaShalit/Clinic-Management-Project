@@ -1,30 +1,13 @@
 import Doctor from '../models/Doctor.model.js';
-import Appointment from '../models/Appointment.model.js';
 import { AppError } from '../utils/AppError.js';
 import { DAYS, DAY_LABELS_HE, toMinutes } from '../utils/time.js';
 
 // Middleware מותאם: בודק שהזמן של התור חוקי (מחר ואילך, לא שבת, לא יום חופש,
 // בתוך שעות העבודה של הרופא ולא בזמן הפסקה). מצורת הנתונים (פורמט) דואג Joi לפני כן
 export const validateAppointmentTime = async (req, res, next) => {
-    let { doctorId, date, time } = req.body;
+    const { doctorId, date, time } = req.body;
 
-    // בעדכון (PUT) יש id בכתובת: משלימים את הנתונים החסרים מהתור הקיים
-    if (req.params.id) {
-        // אם לא משנים תאריך או שעה (למשל רק סטטוס), אין מה לבדוק
-        if (!date && !time) {
-            return next();
-        }
-
-        const existing = await Appointment.findById(req.params.id);
-        if (!existing) {
-            throw new AppError('התור לא נמצא', 404, 'not found');
-        }
-
-        doctorId = doctorId || existing.doctorId;
-        date = date || existing.date;
-        time = time || existing.time;
-    }
-
+    // 1) לא היום ולא בעבר: מחר ואילך בלבד
     const appointmentDate = new Date(date);
     const tomorrow = new Date();
     tomorrow.setHours(0, 0, 0, 0);
@@ -34,12 +17,14 @@ export const validateAppointmentTime = async (req, res, next) => {
         throw new AppError('ניתן לקבוע תור החל ממחר.', 400, 'validation error');
     }
 
+    // 2) לא שבת (getDay מחזיר 0 עד 6, ו-DAYS ממיר למספר היום בשם)
     const dayName = DAYS[appointmentDate.getDay()];
 
     if (dayName === 'Saturday') {
         throw new AppError('לא ניתן לקבוע תורים ביום שבת.', 400, 'validation error');
     }
 
+    // 3) הרופא קיים, ואינו בחופש באותו יום בשבוע
     const doctor = await Doctor.findById(doctorId);
 
     if (!doctor) {
@@ -50,6 +35,7 @@ export const validateAppointmentTime = async (req, res, next) => {
         throw new AppError(`הרופא אינו מקבל קהל ביום ${DAY_LABELS_HE[dayName]}.`, 400, 'validation error');
     }
 
+    // 4) השעה בתוך שעות העבודה (toMinutes ממיר '09:30' לדקות כדי שאפשר יהיה להשוות)
     const requested = toMinutes(time);
 
     if (requested < toMinutes(doctor.workStartTime) || requested >= toMinutes(doctor.workEndTime)) {
@@ -60,6 +46,7 @@ export const validateAppointmentTime = async (req, res, next) => {
         );
     }
 
+    // 5) השעה לא נופלת על אחת ההפסקות
     const overlappingBreak = (doctor.breaks || []).find(
         b => requested >= toMinutes(b.startTime) && requested < toMinutes(b.endTime)
     );

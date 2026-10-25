@@ -119,7 +119,6 @@ export const createAppointment = async (req, res) => {
         date,
         time,
         treatmentType,
-        durationMinutes: doctor?.appointmentDuration,
         wantsReminder
     }).catch((error) => console.error('שליחת מייל אישור נכשלה:', error.message));
 

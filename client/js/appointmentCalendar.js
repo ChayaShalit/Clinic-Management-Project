@@ -357,31 +357,7 @@ function resetBooking() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-// קובץ יומן (ICS) לתור שנקבע
-function downloadIcs() {
-    const [year, month, day] = state.date.split('-')
-    const start = toMinutes(state.time)
-    const duration = Math.max(5, Number(state.doctor.appointmentDuration) || 15)
-    const stamp = (min) => `${year}${month}${day}T${pad(Math.floor(min / 60))}${pad(min % 60)}00`
-    const created = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
 
-    const lines = [
-        'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Digital Clinic//HE', 'BEGIN:VEVENT',
-        `UID:${Date.now()}@digital-clinic`,
-        `DTSTAMP:${created}`,
-        `DTSTART:${stamp(start)}`,
-        `DTEND:${stamp(start + duration)}`,
-        `SUMMARY:תור אצל ד״ר ${state.doctor.name}`,
-        `DESCRIPTION:${state.type}`,
-        'END:VEVENT', 'END:VCALENDAR'
-    ]
-    const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = 'appointment.ics'
-    link.click()
-    URL.revokeObjectURL(link.href)
-}
 
 /* ---------- אתחול ---------- */
 async function init() {
@@ -394,7 +370,6 @@ async function init() {
     $('calPrev').addEventListener('click', () => changeMonth(-1))
     $('calNext').addEventListener('click', () => changeMonth(1))
     $('bookBtn').addEventListener('click', onBook)
-    $('icsBtn').addEventListener('click', downloadIcs)
     $('againBtn').addEventListener('click', resetBooking)
 
     renderCalendar()

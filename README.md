@@ -75,7 +75,6 @@ index.js       נקודת הכניסה של השרת
 | קביעת תור | POST | `/appointments` | מטופל |
 | התורים שלי (מטופל) | GET | `/appointments/my` | מטופל |
 | התורים שלי (רופא) | GET | `/appointments/doctor/my` | רופא |
-| עדכון תור | PUT | `/appointments/:id` | אימות |
 | ביטול תור | DELETE | `/appointments/:id` | אימות |
 | דוח PDF של תורי היום | GET | `/appointments/doctor/my/today/pdf` | רופא |
 | יצירת הפניה (עם קובץ מצורף) | POST | `/referals` | רופא |

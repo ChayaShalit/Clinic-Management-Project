@@ -8,10 +8,22 @@ import { fileURLToPath } from 'node:url';
 import { sendAppointmentConfirmation } from '../services/notification.service.js';
 import { AppError } from '../utils/AppError.js';
 
-// שגיאות נזרקות עם AppError ומטופלות ב-error middleware (Express 5 תופס גם שגיאות של async),
-// ולכן אין כאן try/catch. בדיקות תקינות של הנתונים נעשות לפני כן, עם Joi בקובץ הנתיבים
+/*
+ * ה-controller של התורים: כל פונקציה כאן עושה פעולה אחת על תורים.
+ * היא מקבלת בקשה (req) ומחזירה תשובה (res), ומדברת עם מסד הנתונים דרך ה-models.
+ *
+ * מה רץ לפני הפונקציות (בקובץ appointmentRoutes.js):
+ *   auth             - בודק שהמשתמש מחובר ומחלץ ממנו את req.currentUser (id ותפקיד)
+ *   authPatient / authDoctor - בודקים את התפקיד: מטופלת או רופאה
+ *   validate (Joi)   - בודק שהנתונים שנשלחו בפורמט תקין
+ *   validateAppointmentTime - הבדיקות העסקיות של זמן התור (שבת, הפסקות, שעות עבודה)
+ *
+ * שגיאות: זורקים throw new AppError(הודעה, קוד, סוג). Express 5 תופס שגיאות גם בפונקציות
+ * async ושולח אותן ל-error middleware, ולכן אין כאן try/catch (חוץ מ-PDF, ראו שם).
+ */
 
-// ב-PDF מספרים בתוך טקסט עברי מתהפכים, אז הופכים אותם מראש
+// הופכת מחרוזת (למשל '09:00' ל-'00:90'). משמשת רק ב-PDF: מספרים בתוך טקסט עברי מוצגים הפוך,
+// ולכן הופכים אותם מראש כדי שיוצגו נכון
 const ltr = (text) => [...String(text)].reverse().join('');
 
 // הגדרות טקסט עברי ב-PDF: יישור לימין וכיוון כתיבה מימין לשמאל
@@ -23,6 +35,8 @@ const POPULATE_PATIENT_NAME = {
     populate: { path: 'userId', select: 'name' }
 };
 
+// מחזירה את רשומת המטופלת (Patient) של המשתמש המחובר.
+// למה צריך: בטוקן יש רק משתמש (User), ובתור שמור מזהה של מטופלת (Patient). אם אין רשומה: 404
 const getCurrentPatient = async (currentUser) => {
     const patient = await Patient.findOne({ userId: currentUser.id });
 
@@ -33,6 +47,7 @@ const getCurrentPatient = async (currentUser) => {
     return patient;
 };
 
+// מחזירה את רשומת הרופא (Doctor) של המשתמש המחובר. אם אין רשומה: 404
 const getCurrentDoctor = async (currentUser) => {
     const doctor = await Doctor.findOne({ userId: currentUser.id });
 
@@ -43,7 +58,8 @@ const getCurrentDoctor = async (currentUser) => {
     return doctor;
 };
 
-// בודק שהתור שייך למשתמש המחובר: המטופלת שקבעה אותו, או הרופא שלו
+// מחזירה true או false: האם התור שייך למשתמש המחובר?
+// מטופלת: רק תור שהיא קבעה. רופאה: רק תור שנקבע אצלה. כך אי אפשר לבטל תור של מישהי אחרת
 const canManageAppointment = async (appointment, currentUser) => {
     if (currentUser.role === 'patient') {
         const patient = await Patient.findOne({ userId: currentUser.id });
@@ -58,8 +74,9 @@ const canManageAppointment = async (appointment, currentUser) => {
     return false;
 };
 
-// שולף תור לפי מזהה, ומוודא שהוא קיים ושהמשתמש המחובר רשאי לטפל בו (action: 'לשנות' או 'לבטל')
-const getManagedAppointment = async (id, currentUser, action) => {
+// שולפת תור לפי מזהה ומוודאת שני דברים: שהוא קיים (אחרת 404), ושמותר למשתמש לטפל בו (אחרת 403).
+// מחזירה את התור, ואם משהו לא תקין זורקת שגיאה
+const getManagedAppointment = async (id, currentUser) => {
     const appointment = await Appointment.findById(id);
 
     if (!appointment) {
@@ -67,27 +84,28 @@ const getManagedAppointment = async (id, currentUser, action) => {
     }
 
     if (!(await canManageAppointment(appointment, currentUser))) {
-        throw new AppError(`אין לך הרשאה ${action} תור זה`, 403, 'auth error');
+        throw new AppError('אין לך הרשאה לבטל תור זה', 403, 'auth error');
     }
 
     return appointment;
 };
 
-// מוודא שאין תור מאושר אחר אצל אותו רופא באותה שעה
-// excludeId: התור שמעדכנים, כדי שלא יתנגש בעצמו
-const assertSlotFree = async ({ doctorId, date, time, excludeId }) => {
-    const filter = { doctorId, date, time, status: 'confirmed' };
-
-    if (excludeId) {
-        filter._id = { $ne: excludeId };
-    }
-
-    if (await Appointment.exists(filter)) {
+// בודקת שאין כבר תור מאושר אצל אותו רופא, באותו תאריך ובאותה שעה.
+// אם יש, זורקת שגיאה 409 (התנגשות). exists מחזירה רק אם נמצא תור, בלי להביא את כל הנתונים
+const assertSlotFree = async ({ doctorId, date, time }) => {
+    if (await Appointment.exists({ doctorId, date, time, status: 'confirmed' })) {
         throw new AppError('השעה שבחרת כבר תפוסה אצל רופא זה. אנא בחרו זמן אחר.', 409, 'conflict');
     }
 };
 
-// המטופלת נקבעת לפי ההתחברות (הטוקן), והרופא נבחר מהרשימה
+// התאריך של היום לפי שעון ישראל, בפורמט YYYY-MM-DD (למשל '2026-10-27').
+// השרת בענן רץ לפי שעון UTC, ולכן לא סומכים על new Date() הרגיל כדי לדעת מה "היום" אצלנו
+const todayInIsrael = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' }).format(new Date());
+
+// קביעת תור חדש. POST /appointments. רק מטופלת (authPatient).
+// שלבים: 1) מזהים את המטופלת לפי הטוקן 2) בודקים שהשעה פנויה 3) שומרים את התור 4) שולחים מייל אישור.
+// שימו לב: המטופלת לא נשלחת בבקשה אלא נקבעת מהטוקן (כדי שלא יוכלו לקבוע תור בשם מישהי אחרת).
+// הנתונים כבר עברו Joi וגם validateAppointmentTime, לכן כאן אין בדיקות פורמט
 export const createAppointment = async (req, res) => {
     const { doctorId, date, time, treatmentType, wantsReminder } = req.body;
 
@@ -111,7 +129,7 @@ export const createAppointment = async (req, res) => {
 
     const doctor = await Doctor.findById(doctorId).populate('userId', 'name').catch(() => null);
 
-    // המייל לא מעכב את התשובה, וכישלון בשליחה לא מפיל את הקביעה
+    // אין כאן await בכוונה: המייל נשלח ברקע ולא מעכב את התשובה, וכישלון בשליחה לא מבטל את התור
     sendAppointmentConfirmation({
         to: user.email,
         patientName: user.name,
@@ -128,43 +146,27 @@ export const createAppointment = async (req, res) => {
     });
 };
 
-// עדכון/דחיית תור. הגוף כבר עבר Joi, אז יש בו רק date, time, treatmentType ו-status
-export const updateAppointment = async (req, res) => {
-    const { id } = req.params;
-    const { date, time } = req.body;
-
-    const currentAppointment = await getManagedAppointment(id, req.currentUser, 'לשנות');
-
-    if (date || time) {
-        await assertSlotFree({
-            doctorId: currentAppointment.doctorId,
-            date: date || currentAppointment.date,
-            time: time || currentAppointment.time,
-            excludeId: id
-        });
-    }
-
-    const updatedAppointment = await Appointment.findByIdAndUpdate(id, req.body, { new: true });
-
-    res.status(200).json({ message: 'התור עודכן בהצלחה', appointment: updatedAppointment });
-};
-
-// ביטול (מחיקת) תור
+// ביטול תור. DELETE /appointments/:id.
+// רק המטופלת שקבעה את התור, או הרופאה שלו (getManagedAppointment בודקת הרשאה).
+// שימו לב: זו מחיקה אמיתית מהמסד, ולא שינוי סטטוס ל"מבוטל"
 export const deleteAppointment = async (req, res) => {
-    const appointment = await getManagedAppointment(req.params.id, req.currentUser, 'לבטל');
+    const appointment = await getManagedAppointment(req.params.id, req.currentUser);
 
     await appointment.deleteOne();
 
     res.status(200).json({ message: 'התור בוטל בהצלחה' });
 };
 
-// שליפת התורים של רופא ספציפי
+// תורים של רופא לפי מזהה בכתובת. GET /appointments/doctor/:doctorId.
+// שימו לב: לא בשימוש בלקוח (הרופא משתמש ב-getMyDoctorAppointments)
 export const getDoctorAppointments = async (req, res) => {
     const appointments = await Appointment.find({ doctorId: req.params.doctorId }).sort({ time: 1 });
 
     res.status(200).json({ appointments });
 };
 
+// התורים של המטופלת המחוברת. GET /appointments/my. משמשת את הדף הראשי של המטופלת.
+// populate מוסיף את שם הרופא (התור שומר רק מזהה), והמיון לפי תאריך ושעה (1 = סדר עולה)
 export const getMyAppointments = async (req, res) => {
     const patient = await getCurrentPatient(req.currentUser);
 
@@ -175,6 +177,8 @@ export const getMyAppointments = async (req, res) => {
     res.status(200).json({ appointments });
 };
 
+// התורים של הרופאה המחוברת. GET /appointments/doctor/my. משמשת את הדף הראשי שלה.
+// populate מוסיף את שם המטופלת (דרך POPULATE_PATIENT_NAME)
 export const getMyDoctorAppointments = async (req, res) => {
     const doctor = await getCurrentDoctor(req.currentUser);
 
@@ -185,21 +189,21 @@ export const getMyDoctorAppointments = async (req, res) => {
     res.status(200).json({ appointments });
 };
 
+// דוח PDF של תורי היום של הרופאה. GET /appointments/doctor/my/today/pdf.
+// מסננת תורים של היום (לפי שעון ישראל) שלא בוטלו, וכותבת אותם לקובץ PDF בעזרת ספריית pdfkit.
+// דברים מיוחדים: 1) pdfkit לא יודעת עברית לבד, ולכן יש גופן עברי בתיקיית fonts, RTL_TEXT ו-ltr.
+// 2) הקובץ נשלח כזרם (pipe) ישר לתשובה, ולכן נשאר כאן try/catch: אם כבר התחלנו לשלוח אי אפשר
+//    להחזיר שגיאה רגילה, ורק מנתקים את החיבור
 export const downloadTodayAppointmentsPDF = async (req, res, next) => {
     try {
         const doctor = await getCurrentDoctor(req.currentUser);
 
-        const now = new Date();
-
-        const start = new Date(now);
-        start.setHours(0, 0, 0, 0);
-
-        const end = new Date(now);
-        end.setHours(23, 59, 59, 999);
+        // תורים נשמרים כתאריך בשעה 00:00 לפי UTC, ולכן מחפשים התאמה מדויקת לתאריך של היום
+        const todayKey = todayInIsrael();
 
         const appointments = await Appointment.find({
             doctorId: doctor._id,
-            date: { $gte: start, $lte: end },
+            date: new Date(todayKey),
             status: { $ne: 'cancelled' }
         })
             .populate(POPULATE_PATIENT_NAME)
@@ -230,7 +234,7 @@ export const downloadTodayAppointmentsPDF = async (req, res, next) => {
 
         doc.moveDown();
 
-        doc.fontSize(12).text(now.toLocaleDateString('he-IL'), RTL_TEXT);
+        doc.fontSize(12).text(new Date(todayKey).toLocaleDateString('he-IL', { timeZone: 'UTC' }), RTL_TEXT);
 
         doc.moveDown();
 
@@ -268,7 +272,10 @@ export const downloadTodayAppointmentsPDF = async (req, res, next) => {
     }
 };
 
-// השעות התפוסות אצל רופא ביום מסוים, כדי שהמטופלת תראה רק שעות פנויות
+// השעות התפוסות אצל רופא ביום מסוים. GET /appointments/availability?doctorId=...&date=...
+// הלקוח (היומן) מחסיר אותן מהשעות של הרופא, כך שהמטופלת רואה רק שעות פנויות.
+// הפרמטרים מגיעים בכתובת (req.query, לא req.body) ועוברים Joi בקובץ הנתיבים.
+// מחזירה רק את השדה time של כל תור (select), כדי לא לשלוח מידע מיותר
 // הרופא והתאריך מגיעים בכתובת (query) ועוברים Joi בקובץ הנתיבים
 export const getAvailability = async (req, res) => {
     const { doctorId, date } = req.query;

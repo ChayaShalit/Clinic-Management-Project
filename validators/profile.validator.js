@@ -1,3 +1,5 @@
+import Joi from 'joi';
+import { phone } from './common.validator.js';
 export const patientProfileSchema = Joi.object({
     name: Joi.string().trim().min(2),            // בלי .required()
     phone: phone.allow(''),

@@ -1,15 +1,15 @@
 import express from 'express'
-import Joi from 'joi';
-import { phone } from './common.validator.js';
 import { auth } from '../middlewares/auth.middleware.js'
 import { getProfile, updateProfile } from '../controllers/profileController.js'
-import {upload} from '../middlewares/uploads.middleware.js'
-import {UploadProfile} from '../controllers/uploadsControler.js'
+import { upload } from '../middlewares/uploads.middleware.js'
+import { UploadProfile } from '../controllers/uploadsControler.js'
+import { validate } from '../middlewares/validate.middleware.js'
+import { patientProfileSchema } from '../validators/profile.validator.js'
 const router = express.Router()
 
 router.get('/',auth,getProfile)
 
-router.patch('/',auth,updateProfile)
+router.patch('/', auth, validate(patientProfileSchema), updateProfile)
 
 router.put('/profileImaeg',auth,upload.single('profileImage'),UploadProfile)
 

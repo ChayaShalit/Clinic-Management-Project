@@ -45,7 +45,7 @@ app.use('/api/patient', patientRouter)
 
 app.use('/api/', reminderRouter)
 
-app.use('api/profile',profileRouter)
+app.use('api/profile/',profileRouter)
 
 
 startReminderJob();

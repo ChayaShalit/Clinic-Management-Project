@@ -68,5 +68,11 @@ const sendAllTomorrowReminders = async () => {
 כלומר לכל מטופל נוצר מערך ממהמאפ שמנסים לשלוח לו מייל 
 הפורמיס אול אומר לשלוח לכלום בייחד רק  אחרי שהפעולה הזו נגמרה אפשר לעבור הלאה 
  */
+const runTomorrowReminders = async (req, res) => {
+    await sendAllTomorrowReminders();
+    res.json({ message: 'התזכורות נשלחו' });
+};
 
-export { getAppointmentsForTomorrow, sendAllTomorrowReminders };
+
+
+export { getAppointmentsForTomorrow, sendAllTomorrowReminders, runTomorrowReminders };

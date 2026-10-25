@@ -5,7 +5,7 @@ import { sendAllTomorrowReminders } from '../controllers/reminderController.js';
 
 export const startReminderJob = () => {
      cron.schedule('0 20 * * *', async () => {
-          console.log('[תזכורות] מתחילה הרצה יומית');
+        
           try {
                await sendAllTomorrowReminders();
           } catch (error) {

@@ -1,5 +1,5 @@
 import Joi from 'joi';
-
+import { objectId } from './common.validator.js';
 export const createReferalSchema = Joi.object({
     patientTz: Joi.string().pattern(/^\d{9}$/).required().messages({
         'string.pattern.base': 'ת.ז חייבת להכיל 9 ספרות',
@@ -17,3 +17,6 @@ export const createReferalSchema = Joi.object({
         'any.required': 'נא להזין תיאור'
     })
 });
+// מזהי הפניה ומטופל שמגיעים בכתובת
+export const referalIdParamSchema = Joi.object({ referalId: objectId.required() });
+export const patientIdParamSchema = Joi.object({ id: objectId.required() });

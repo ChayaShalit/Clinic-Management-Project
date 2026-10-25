@@ -1,4 +1,6 @@
 import express from 'express'
+import Joi from 'joi';
+import { phone } from './common.validator.js';
 import { auth } from '../middlewares/auth.middleware.js'
 import { getProfile, updateProfile } from '../controllers/profileController.js'
 import {upload} from '../middlewares/uploads.middleware.js'

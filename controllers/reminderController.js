@@ -1,5 +1,4 @@
 import Appointment from '../models/Appointment.model.js';
-import PDFDocument from 'pdfkit';
 import transporter from '../utils/mailer.js';
 import { buildHtml, CLINIC } from '../utils/emailTemplate.js';
 const getAppointmentsForTomorrow = async () => {
@@ -70,4 +69,4 @@ const sendAllTomorrowReminders = async () => {
 הפורמיס אול אומר לשלוח לכלום בייחד רק  אחרי שהפעולה הזו נגמרה אפשר לעבור הלאה 
  */
 
-export { getAppointmentsForTomorrow, sendAllTomorrowReminders ,getAllTomorrowReminders};
+export { getAppointmentsForTomorrow, sendAllTomorrowReminders };

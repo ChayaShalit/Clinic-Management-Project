@@ -47,7 +47,7 @@ export const authDoctor = (req,res,next)=>{
         return next()
     }
     
-    const error = new AppError('גישה חסומה: נדרשת הרשאת רופא','40','auth error');
+    const error = new AppError('גישה חסומה: נדרשת הרשאת רופא','403','auth error');
     next(error);
 }
 

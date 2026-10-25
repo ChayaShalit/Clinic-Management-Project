@@ -48,16 +48,14 @@ const createReferal = async (req, res) => {
  */
 const getReferalForPatient = async (req, res) => {
     const patientId = req.params.id
-    try {
+    
         if (req.currentUser.role === 'patient' && String(req.currentUser.id) !== String(patientId)) {
             throw new AppError('אין הרשאה לראות הפניות של משתמש אחר', 403, 'auth error');
         }
         const referals = await Referal.find({  patientId })
             .populate({ path: 'doctorId', populate: { path: 'userId', select: 'name' } })
         res.json(referals)
-    } catch (error) {
-        res.status(500).json({ message: "error in ID" })
-    }
+  
 }
 /**
  הפונקציה מחזירה לפציינט את ההפניות שלו על ידי התחברות למונוגו 
@@ -73,7 +71,7 @@ const markReferalAsRead=async(req ,res)=>{
             throw new AppError('ההפניה לא נמצאה', 404, 'not found');
 
     }
-    if(String(referal.patientId)!==String(req.doctorUser.id))
+    if(String(referal.patientId)!==String(req.currentUser.id))
         {
 
         throw new AppError('אין הרשאה לעדכן הפניה של משתמש אחר', 403, 'auth error');

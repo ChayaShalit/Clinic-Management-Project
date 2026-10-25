@@ -34,7 +34,7 @@ const fileFilter = (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
-      cb(new AppError('רק קבצי תמונה מותרים להעלאה!'), false);
+      cb(new AppError('רק קבצי תמונה מותרים להעלאה!','400','upload error'), false);
     }
   } catch (err) {
     cb(err, false);

@@ -1,54 +1,62 @@
-/* עיצוב דף הפרופיל. Bootstrap מטפל בפריסה ובשדות, וכאן רק מה שייחודי לדף */
-:root {
-  --pf-primary: #1e5fa8;
-  --pf-patient: #1f8a5b;
-  --pf-patient-soft: #e6f6ee;
-  --pf-doctor: #6b4fb8;
-  --pf-doctor-soft: #efeafa;
-  --pf-border: #dde3ea;
-  --pf-muted: #6b7785;
-  --pf-radius: 14px;
-}
+/* עיצוב דף הפרופיל.
+   כל הצבעים, הרדיוסים והצללים מגיעים ממשתני העיצוב המשותפים של האתר (style.css),
+   ולכן הדף תמיד תואם לשאר הדפים, גם אם משנים שם את הפלטה. */
 
 .profile-page {
-  max-width: 720px;
-  padding-block: 28px 56px;
+  max-width: 820px;
+  padding-bottom: 3.5rem;
 }
 
-.profile-title {
-  font-size: 1.6rem;
-  font-weight: 700;
-  margin-bottom: 20px;
+/* אלמנטים לפי תפקיד: כשהם מוסתרים (hidden), מסתירים אותם גם אם יש להם display של Bootstrap */
+[data-role][hidden] {
+  display: none !important;
 }
 
 /* כרטיס כללי (גם fieldset וגם section) */
 .profile-card {
-  background: #fff;
-  border: 1px solid var(--pf-border);
-  border-radius: var(--pf-radius);
-  padding: 22px;
-  margin-bottom: 18px;
-  box-shadow: 0 1px 3px rgba(20, 40, 70, 0.06);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 1.6rem 1.7rem;
+  margin-bottom: 1.1rem;
+  box-shadow: var(--shadow-sm);
   min-width: 0;
 }
 
+/* כותרת קבוצת שדות: אייקון בעיגול ושם */
 .profile-legend {
-  font-size: 1.05rem;
-  font-weight: 700;
-  margin-bottom: 16px;
+  /* בלי float:none, כדי שהכותרת תישאר בתוך הכרטיס ולא תשב על הקו העליון שלו */
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: 0;
+  margin-bottom: 1.2rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--navy-800);
 }
 
-/* צבע שונה לקבוצת השדות של כל תפקיד */
-.profile-card[data-role="patient"] { border-top: 4px solid var(--pf-patient); }
-.profile-card[data-role="patient"] .profile-legend { color: var(--pf-patient); }
-.profile-card[data-role="doctor"] { border-top: 4px solid var(--pf-doctor); }
-.profile-card[data-role="doctor"] .profile-legend { color: var(--pf-doctor); }
+.profile-legend i {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: var(--grad-blue);
+  color: #fff;
+  font-size: 1.1rem;
+}
+
+.profile-card[data-role="doctor"] .profile-legend i {
+  background: var(--grad-orange);
+}
 
 /* תמונת פרופיל */
 .avatar-card {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 1.5rem;
 }
 
 .avatar-wrap {
@@ -57,77 +65,90 @@
 }
 
 .avatar {
-  width: 120px;
-  height: 120px;
+  width: 112px;
+  height: 112px;
   border-radius: 50%;
   object-fit: cover;
-  background: #e8f1fb;
+  background: var(--blue-soft);
   border: 4px solid #fff;
-  box-shadow: 0 0 0 2px var(--pf-border);
+  box-shadow: 0 0 0 3px var(--blue), var(--shadow-md);
 }
 
 .avatar-btn {
   position: absolute;
-  bottom: 2px;
-  inset-inline-end: 2px;
+  bottom: 0;
+  inset-inline-end: 0;
   width: 38px;
   height: 38px;
+  display: grid;
+  place-items: center;
   border: 0;
   border-radius: 50%;
-  background: var(--pf-primary);
+  background: var(--grad-orange);
   color: #fff;
-  font-size: 1.1rem;
-  line-height: 1;
+  font-size: 1.05rem;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 6px 14px rgba(238, 106, 27, .45);
+  transition: transform .2s;
 }
 
-.avatar-btn:hover,
-.avatar-btn:focus-visible {
-  background: #174a85;
+.avatar-btn:hover {
+  transform: scale(1.1);
 }
 
 .role-badge {
   display: inline-block;
-  padding: 2px 12px;
+  padding: .25rem 1rem;
   border-radius: 999px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  background: #e8f1fb;
-  color: var(--pf-primary);
+  font-size: .85rem;
+  font-weight: 700;
+  background: var(--blue-soft);
+  color: var(--navy-800);
 }
 
-.role-patient .role-badge { background: var(--pf-patient-soft); color: var(--pf-patient); }
-.role-doctor .role-badge { background: var(--pf-doctor-soft); color: var(--pf-doctor); }
+.role-doctor .role-badge {
+  background: #fff1e0;
+  color: var(--orange-dark);
+}
 
 .avatar-hint,
 .field-note {
-  font-size: 0.85rem;
-  color: var(--pf-muted);
-  margin: 8px 0 0;
+  font-size: .85rem;
+  color: var(--muted);
+  margin: .55rem 0 0;
 }
 
-/* שדות שלא ניתן לשנות (אימייל, ת.ז) */
+.field-note i {
+  margin-inline-end: .3rem;
+}
+
+.field-note a {
+  font-weight: 700;
+}
+
+/* שדות שלא ניתן לשנות (ת.ז) */
 .form-control:disabled {
-  background: #f3f5f8;
-  color: var(--pf-muted);
+  background: var(--tile);
+  color: var(--muted);
   cursor: not-allowed;
-}
-
-.form-control:focus,
-.form-select:focus {
-  border-color: var(--pf-primary);
-  box-shadow: 0 0 0 0.2rem rgba(30, 95, 168, 0.15);
 }
 
 /* הודעת הצלחה או שגיאה */
 #apiMessage {
-  padding: 12px 16px;
-  border-radius: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 1rem;
+}
+
+#saveBtn {
+  margin-top: .3rem;
 }
 
 @media (max-width: 576px) {
-  .profile-card { padding: 16px; }
-  .avatar-card { flex-direction: column; text-align: center; }
+  .profile-card {
+    padding: 1.2rem 1.1rem;
+  }
+
+  .avatar-card {
+    flex-direction: column;
+    text-align: center;
+  }
 }

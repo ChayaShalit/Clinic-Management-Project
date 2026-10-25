@@ -59,6 +59,11 @@ if (role === 'patient') {
   $('medicalNotes').addEventListener('input', updateNotesCount);
 }
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> e65c66cfe67d0785f9506a0d09aa35d0724aadf6
 /* ---------- עזרים ---------- */
 function setAvatar(fileName) {
   img.onerror = () => { img.onerror = null; img.src = PLACEHOLDER; };
@@ -71,6 +76,10 @@ function updateNotesCount() {
   $('notesCount').textContent = $('medicalNotes').value.length;
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e65c66cfe67d0785f9506a0d09aa35d0724aadf6
 // בונה את מה שנשלח לשרת
 function buildPayload() {
   const data = Object.fromEntries(new FormData(form));   // אימייל וקבוצת התפקיד השני לא נכללים

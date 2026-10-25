@@ -2,7 +2,7 @@ const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname)
 
 export const SERVER_URL = isLocal
     ? 'http://localhost:3000'
-    : 'https://שם-השירות-שלך.onrender.com'   // יוחלף בכתובת האמיתית בשלב 3
+    : 'https://clinic-server-rw4o.onrender.com'
 
 export const API_URL = `${SERVER_URL}/api`
 export const FILES_URL = `${SERVER_URL}/files`

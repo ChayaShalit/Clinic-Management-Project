@@ -15,22 +15,66 @@ import { CLINIC, buildHtml } from '../utils/emailTemplate.js';
  */
 
 /* ---------- עזרים ---------- */
+/**
+ * מה היא עושה: בודקת שהוגדרו בקובץ .env חשבון המייל והסיסמה (EMAIL_USER ו-EMAIL_PASS)
+ * למה צריך: בלי הגדרות אי אפשר לשלוח מייל, ובמקום לקרוס מדפיסים אזהרה ולא שולחים
+ * משמשת את safeSend
+ *
+ * @returns {boolean} אמת אם שני המשתנים קיימים
+ */
 const isMailConfigured = () => Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
 
-// תאריך בפורמט YYYY-MM-DD (או Date מהמסד, שנשמר בחצות לפי UTC) ליום ותאריך בעברית
+/**
+ * מה היא עושה: הופכת תאריך לאובייקט Date של יום מלא, בלי הזזה של יום
+ * מקבלת טקסט בפורמט YYYY-MM-DD, או Date מהמסד
+ * למה צריך: תאריכים נשמרים במסד בחצות לפי UTC. קריאה במרכיבי UTC מבטיחה שהיום לא יזוז באזור זמן אחר
+ * ובטקסט החודש מוקטן באחד, כי ב-JavaScript החודשים מתחילים מאפס
+ * משמשת את longDate
+ *
+ * @param {string|Date} value התאריך
+ * @returns {Date} תאריך של אותו יום
+ */
 const parseDate = (value) => {
     if (value instanceof Date) return new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
     const [y, m, d] = String(value).slice(0, 10).split('-').map(Number);
     return new Date(y, m - 1, d);
 };
+/**
+ * מה היא עושה: מעצבת תאריך כטקסט בעברית, עם יום בשבוע
+ * למשל: יום שלישי, 27 באוקטובר 2026
+ * משמשת את שלושת המיילים: בנושא, בטבלה ובטקסט
+ *
+ * @param {string|Date} value התאריך
+ * @returns {string} התאריך בעברית
+ */
 const longDate = (value) => parseDate(value).toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
+/**
+ * מה היא עושה: מחזירה את שם הרופאה עם התואר ד״ר לפניו
+ * אם אין שם, מחזירה טקסט ברירת מחדל, כדי שהמייל לא יכלול שם ריק
+ * משמשת את כל המיילים
+ *
+ * @param {string} [name] שם הרופאה
+ * @param {string} [fallback] הטקסט כשאין שם. ברירת מחדל: הרופא/ה
+ * @returns {string} למשל: ד״ר דנה לוי
+ */
 const doctorLabel = (name, fallback = 'הרופא/ה') => (name ? `ד״ר ${name}` : fallback);
 
+// ההערה בתחתית מיילי התור והתזכורת: איך לבטל או לשנות. מוגדרת פעם אחת כי היא חוזרת בשניהם
 const SUPPORT_NOTE = 'צריך לבטל או לשנות? אפשר ליצור קשר עם המרפאה בטלפון, ונשמח לעזור. כדאי להגיע כ-10 דקות לפני השעה.';
 
 /* ---------- שליחה ---------- */
-// שליחה בטוחה: לא זורקת שגיאה, ומחזירה true אם נשלח ו-false אם לא
+/**
+ * מה היא עושה: שולחת מייל בצורה בטוחה, בלי לזרוק שגיאה
+ * לא שולחת אם אין כתובת יעד, או אם לא הוגדרו פרטי המייל בקובץ .env
+ * אם השליחה נכשלת, רושמת את הסיבה בטרמינל
+ * למה צריך: מייל הוא תוספת. כישלון בו לא צריך להפיל קביעת תור או יצירת הפניה
+ * משמשת את sendMail
+ *
+ * @param {Object} mail פרטי המייל: to, subject, text, html
+ * @param {string} label שם קצר לסוג המייל, לצורך הודעות בטרמינל
+ * @returns {Promise<boolean>} אמת אם נשלח, שקר אם לא
+ */
 const safeSend = async (mail, label) => {
     if (!mail.to) {
         console.warn(`[מייל] ${label}: אין כתובת מייל ליעד, לא נשלח`);
@@ -49,7 +93,26 @@ const safeSend = async (mail, label) => {
     }
 };
 
-// המקום היחיד שמרכיב מייל שלם: גרסת טקסט פשוט וגרסה מעוצבת, ושולח אותו
+/**
+ * מה היא עושה: מרכיבה מייל שלם ושולחת אותו
+ * בונה ברכה, גרסת טקסט פשוט (למי שהמייל שלה לא מציג עיצוב), וגרסה מעוצבת מהתבנית
+ * למה צריך: המקום היחיד שמרכיב מייל, כדי שלא יהיה קוד כפול בין המיילים
+ * כל מייל מגדיר רק את התוכן הייחודי לו
+ * משמשת את שלוש הפונקציות שמטה
+ *
+ * @param {Object} details פרטי המייל
+ * @param {string} details.to כתובת היעד
+ * @param {string} details.patientName שם המטופלת, לברכה
+ * @param {string} details.label שם קצר לסוג המייל, להודעות בטרמינל
+ * @param {string} details.subject נושא המייל
+ * @param {string} details.preheader תצוגה מקדימה ברשימת המיילים
+ * @param {string} details.title כותרת המייל
+ * @param {string} details.intro פסקת הפתיחה
+ * @param {Array<Array<string>>} details.rows שורות הטבלה, כל שורה היא כותרת וערך
+ * @param {string} details.note ההערה בתחתית
+ * @param {string[]} details.textLines שורות גרסת הטקסט הפשוט
+ * @returns {Promise<boolean>} אמת אם נשלח
+ */
 const sendMail = ({ to, patientName, label, subject, preheader, title, intro, rows, note, textLines }) => {
     const greeting = `שלום ${patientName || ''},`;
     return safeSend({
@@ -61,6 +124,23 @@ const sendMail = ({ to, patientName, label, subject, preheader, title, intro, ro
 };
 
 /* ---------- 1. אישור קביעת תור ---------- */
+/**
+ * מה היא עושה: שולחת למטופלת מייל אישור שהתור נקבע
+ * המייל כולל רופאה, תאריך, שעה, סוג טיפול, והאם ביקשה תזכורת
+ * למה צריך: כדי שלמטופלת יהיו כל פרטי התור בכתובת המייל שלה
+ * נשלחת מיד אחרי שהתור נשמר, בלי await, ולכן לא מעכבת את התשובה
+ * משמשת את יצירת התור בקונטרולר התורים
+ *
+ * @param {Object} details פרטי התור
+ * @param {string} details.to כתובת המטופלת
+ * @param {string} details.patientName שם המטופלת
+ * @param {string} [details.doctorName] שם הרופאה
+ * @param {string} details.date תאריך התור
+ * @param {string} details.time שעת התור
+ * @param {string} [details.treatmentType] סוג הטיפול
+ * @param {boolean} details.wantsReminder האם ביקשה תזכורת
+ * @returns {Promise<boolean>} אמת אם נשלח
+ */
 export const sendAppointmentConfirmation = async ({ to, patientName, doctorName, date, time, treatmentType, wantsReminder }) => {
     const doctor = doctorLabel(doctorName);
     const when = `${longDate(date)} בשעה ${time}`;
@@ -90,7 +170,22 @@ export const sendAppointmentConfirmation = async ({ to, patientName, doctorName,
 };
 
 /* ---------- 2. הפניה חדשה ---------- */
-// בכוונה לא נשלחים כאן תוכן ההפניה והקובץ המצורף: מידע רפואי נשאר באזור האישי המוגן
+/**
+ * מה היא עושה: שולחת למטופלת מייל שקיבלה הפניה חדשה
+ * המייל כולל מי שלחה, סוג ההפניה, והאם יש קובץ מצורף
+ * למה בלי תוכן: בכוונה לא נשלחים תוכן ההפניה והקובץ המצורף
+ * מידע רפואי נשאר באזור האישי המוגן באתר
+ * נשלחת מיד אחרי שההפניה נשמרה, בלי await
+ * משמשת את יצירת ההפניה בקונטרולר ההפניות
+ *
+ * @param {Object} details פרטי ההפניה
+ * @param {string} details.to כתובת המטופלת
+ * @param {string} details.patientName שם המטופלת
+ * @param {string} [details.doctorName] שם הרופאה
+ * @param {string} details.kindReferal סוג ההפניה
+ * @param {boolean} details.hasAttachment האם יש קובץ מצורף
+ * @returns {Promise<boolean>} אמת אם נשלח
+ */
 export const sendReferalNotification = async ({ to, patientName, doctorName, kindReferal, hasAttachment }) => {
     const doctor = doctorLabel(doctorName, 'הרופא/ה שלך');
 
@@ -116,6 +211,22 @@ export const sendReferalNotification = async ({ to, patientName, doctorName, kin
 };
 
 /* ---------- 3. תזכורת יום לפני התור ---------- */
+/**
+ * מה היא עושה: שולחת למטופלת תזכורת על תור שמתקיים מחר
+ * המייל באותו עיצוב כמו מייל האישור
+ * למה צריך: כדי שמטופלות לא ישכחו את התור
+ * נקראת מהעבודה היומית של התזכורות, דרך הקונטרולר של התזכורות
+ * הקונטרולר מסמן שהתזכורת נשלחה רק אם הפונקציה החזירה אמת
+ *
+ * @param {Object} details פרטי התור
+ * @param {string} details.to כתובת המטופלת
+ * @param {string} details.patientName שם המטופלת
+ * @param {string} [details.doctorName] שם הרופאה
+ * @param {Date|string} details.date תאריך התור
+ * @param {string} details.time שעת התור
+ * @param {string} [details.treatmentType] סוג הטיפול
+ * @returns {Promise<boolean>} אמת אם נשלח
+ */
 export const sendReminderNotification = async ({ to, patientName, doctorName, date, time, treatmentType }) => {
     const doctor = doctorLabel(doctorName);
     const when = `${longDate(date)} בשעה ${time}`;

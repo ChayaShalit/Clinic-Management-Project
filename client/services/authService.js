@@ -1,5 +1,11 @@
 import { TOKEN_KEY, HOME_BY_ROLE } from './config.js';
 
+
+/**
+ * פונקציית חילוץ מטען (getPayload):
+ * מטרה: חותכת את אסימון ה-JWT השמור בלוקל-סטורג' לשלושת חלקיו, מפענחת את החלק האמצעי (Payload) בקידוד Base64, וממירה אותו לאובייקט JavaScript.
+ * מחזירה: אובייקט ה-Payload המפוענח, או `null` במקרה של שגיאה או אם הטוקן אינו קיים.
+ */
 //מוציאה את הטוקן 
 const getPayload = () => {
     try {
@@ -8,12 +14,14 @@ const getPayload = () => {
     } catch { return null; }
 };
 
+
 //מחזירה את התפקיד מתוך הטוקן
 export const getRole = () => {
     const payload = getPayload();
     if (!payload || payload.exp * 1000 < Date.now()) return null;   // אין טוקן או שפג תוקפו
     return payload.role;
 };
+
 
 //בודקת שאכן המשתמש שרוצה להכנס לדף , רשום והתפקיד שלו מתאים לדף
 export const requireAuth = (allowedRoles) => {

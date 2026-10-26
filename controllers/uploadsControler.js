@@ -5,7 +5,13 @@ import fs from 'fs/promises'
 
 const DEFAULT_IMAGE = 'default-profile.png';
 
-
+/**
+ * פונקציית העלאת תמונת פרופיל (UploadProfile):
+ * מטרה: אחראית על עדכון תמונת הפרופיל של המשתמש. היא מוודאת שקובץ אכן נשלח, מעדכנת את שם הקובץ במסד הנתונים,
+ * מוחקת את התמונה הישנה מהשרת (במידה וקיימת ואינה תמונת ברירת המחדל) רק לאחר שהשמירה הצליחה, 
+ * ובמקרה של כישלון בשמירה במסד – מנקה את הקובץ החדש שהועלה כדי שלא יישארו קבצים יתומים בשרת.
+ * מחזירה: תגובת HTTP 200 (OK) הכוללת הודעת הצלחה ואת שם תמונת הפרופיל החדשה, או מעבירה שגיאה ל-Middleware במקרה של תקלה.
+ */
 export const UploadProfile = async (req,res,next)=>{
     try{
 
@@ -19,8 +25,6 @@ export const UploadProfile = async (req,res,next)=>{
         const err = new AppError('לא נשלחה תמונה','400', 'validation error')   
         return next(err)
         }
-
-
     const user  =await User.findById(id)
     const oldImage = user.profileImage;
 

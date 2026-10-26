@@ -12,7 +12,11 @@ const parse = async (response, fallback) => {
     return data;
 };
 
-
+/**
+ * פונקציית שליפת פרופיל משתמש (getUserProfile):
+ * מטרה: שולחת בקשת HTTP מסוג GET לשרת כדי לקבל את נתוני הפרופיל של המשתמש המחובר, תוך שימוש בטוקן האימות (Token) שבלוקל-סטורג'.
+ * מחזירה: Promise הפותר את נתוני המידע (data) שהתקבלו מהשרת, או זורק שגיאה במקרה שהבקשה נכשלה.
+ */
 export async function getUserProfile (){
     console.log(`נכנס לפונרקציה עדכון פרפיל בלקוח ! `)
 
@@ -23,7 +27,11 @@ export async function getUserProfile (){
     ,'שגיאה בשליפת הפרופיל')
 }
     
-
+/**
+ * פונקציית עדכון פרופיל משתמש (updateUserProfile):
+ * מטרה: שולחת בקשת HTTP מסוג PATCH לשרת עם נתוני הגוף (body) המעודכנים של המשתמש, יחד עם כותרות תוכן (JSON) וטוקן אימות.
+ * מחזירה: Promise הפותר את נתוני התשובה המעודכנים שהתקבלו מהשרת, או זורק שגיאה אם העדכון נכשל.
+ */
 export async function updateUserProfile (body){
 
      return parse(await fetch(`${API_URL}/profile`, {
@@ -33,7 +41,11 @@ export async function updateUserProfile (body){
     }), 'שגיאה בעדכון הפרופיל');
 }
 
-
+/**
+ * פונקציית העלאת תמונת פרופיל (uploadProfileImage):
+ * מטרה: עוטפת את קובץ התמונה בתוך אובייקט FormData ושולחת אותו בבקשת HTTP מסוג PUT לשרת לצורך עדכון התמונה.
+ * מחזירה: Promise הפותר את הנתונים המוחזרים מהשרת לאחר ההעלאה, או זורק שגיאה אם התהליך נכשל.
+ */
 export async function uploadProfileImage (file){
     
     const formData = new FormData();

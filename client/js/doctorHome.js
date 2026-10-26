@@ -1,13 +1,29 @@
-// דף הרופא בלבד — לא משנה קבצי הפניות או פרופיל.
 import { API_URL } from '../services/config.js';
+
+/**
+ * @fileoverview
+ * הדף הראשי של הרופאה: רשימת התורים שלה
+ * הדף מדבר עם השרת בשני מקרים: טעינת התורים, והורדת דוח תורי היום
+ * GET /api/appointments/doctor/my
+ * GET /api/appointments/doctor/my/today/pdf
+ * הסינון לפי תאריך נעשה בדפדפן, והשרת מחזיר את כל התורים של הרופאה
+ */
 
 const message = document.getElementById('doctorMessage');
 const todayList = document.getElementById('todayList');
 const allList = document.getElementById('allList');
 const dateInput = document.getElementById('appointmentsDate');
 
+// כל התורים של הרופאה כפי שהתקבלו מהשרת, ממנה מסננים ומציגים
 let appointments = [];
 
+/**
+ * מה היא עושה: מחזירה תאריך בצורה של שנה, חודש ויום לפי השעון של הדפדפן
+ * משמשת כדי לדעת מה התאריך של היום
+ *
+ * @param {Date|string} [value] תאריך, ברירת מחדל היום
+ * @returns {string} התאריך בצורה של שנה חודש ויום
+ */
 function localDateKey(value = new Date()) {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return '';
@@ -19,6 +35,14 @@ function localDateKey(value = new Date()) {
     return `${year}-${month}-${day}`;
 }
 
+/**
+ * מה היא עושה: מחזירה את תאריך התור בצורה אחידה
+ * השרת שולח תאריך כטקסט שמתחיל בתאריך עצמו, ולכן לוקחים ממנו רק את התאריך
+ * כך לא תלויים באזור הזמן, ותור ליום מסוים תמיד מתאים לאותו יום
+ *
+ * @param {Date|string} value התאריך של התור כפי שהגיע מהשרת
+ * @returns {string} התאריך בצורה של שנה חודש ויום
+ */
 function appointmentDateKey(value) {
     if (typeof value === 'string' &&
         /^\d{4}-\d{2}-\d{2}/.test(value)) {
@@ -28,12 +52,25 @@ function appointmentDateKey(value) {
     return localDateKey(value);
 }
 
+/**
+ * מה היא עושה: מנקה טקסט לפני שמציגים אותו בדף
+ * כך תווים מיוחדים בטקסט שהגיע מהשרת לא יוכלו להפעיל קוד זדוני
+ *
+ * @param {string} value הטקסט להצגה
+ * @returns {string} הטקסט אחרי ניקוי תווים מיוחדים
+ */
 function safe(value) {
     const el = document.createElement('span');
     el.textContent = String(value ?? '');
     return el.innerHTML;
 }
 
+/**
+ * מתרגמת את הסטטוס שהגיע מהשרת לעברית: מאושר, מבוטל או הושלם
+ *
+ * @param {string} status הסטטוס מהשרת
+ * @returns {string} הסטטוס בעברית
+ */
 function statusText(status) {
     return {
         confirmed: 'מאושר',
@@ -42,6 +79,14 @@ function statusText(status) {
     }[status] || 'לא ידוע';
 }
 
+/**
+ * מה היא עושה: בונה את כרטיסי התורים בדף
+ * אם אין תורים להצגה, מציגה הודעה
+ * שם המטופלת מגיע מהשרת בתוך הפרטים שהוא שלף עם התור
+ *
+ * @param {HTMLElement} target האלמנט בדף שאליו מציירים
+ * @param {Array} records רשימת התורים להצגה
+ */
 function renderCards(target, records) {
     if (!records.length) {
         target.innerHTML =
@@ -89,6 +134,11 @@ function renderCards(target, records) {
     }).join('');
 }
 
+/**
+ * מה היא עושה: מסדרת את התורים לפי תאריך ושעה ומציגה שתי רשימות
+ * הרשימה הראשונה היא תורי היום
+ * השנייה היא כל התורים, או רק התורים של התאריך שהרופאה בחרה
+ */
 function render() {
     const sorted = [...appointments].sort((a, b) =>
         (appointmentDateKey(a.date) + (a.time || ''))
@@ -114,6 +164,15 @@ function render() {
     );
 }
 
+/**
+ * מה היא עושה: מביאה מהשרת את התורים של הרופאה ומציגה אותם
+ * מי קורא לה: פתיחת הדף וכפתור הרענון
+ * בלי טוקן מציגה הודעה להתחבר, ובזמן הטעינה מציגה הודעת טעינה
+ * הכתובת בשרת
+ * GET /api/appointments/doctor/my
+ *
+ * @returns {Promise<void>} לא מחזירה ערך
+ */
 async function loadAppointments() {
     const token = localStorage.getItem('token');
 
@@ -166,8 +225,10 @@ async function loadAppointments() {
     }
 }
 
+// כשהרופאה בוחרת תאריך, מציגים מחדש לפי התאריך שבחרה
 dateInput.addEventListener('change', render);
 
+// כפתור הכול: מנקה את התאריך שנבחר ומציג את כל התורים
 document
     .getElementById('showAllAppointments')
     .addEventListener('click', () => {
@@ -175,11 +236,17 @@ document
         render();
     });
 
+// כפתור הרענון: טוען את התורים מהשרת מחדש
 document
     .getElementById('refreshAppointments')
     .addEventListener('click', loadAppointments);
 
+// טעינה ראשונה של התורים כשהדף נפתח
 loadAppointments();
+// כפתור הורדת הדוח של תורי היום
+// מבקש מהשרת את הדוח, מקבל קובץ, ויוצר ממנו הורדה בדפדפן
+// בלי טוקן מציג הודעה להתחבר, והכפתור ננעל בזמן ההורדה
+// GET /api/appointments/doctor/my/today/pdf
 document.getElementById('downloadTodayPDF')
     .addEventListener('click', async () => {
         const button = document.getElementById('downloadTodayPDF');

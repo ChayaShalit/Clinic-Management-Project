@@ -6,13 +6,20 @@ import { AppError } from '../utils/AppError.js'
 const modelByRole = { patient: Patient, doctor: Doctor };
 
 
+/**
+ * פונקציית שליפת פרופיל (getProfile):
+ * מטרה: שולפת את נתוני המשתמש המחובר מהמסד באמצעות מזהה המשתמש (`id`) והתפקיד (`role`) מתוך `req.currentUser`. 
+ * היא מבצעת שאילתה משולבת: שולפת את השדות הכלליים מטבלאות/אוסף ה-User ואת הנתונים הספציפיים לפי תפקיד (Patient או Doctor) מאוסף המודל המותאם.
+ * מחזירה: תגובת HTTP 200 (OK) הכוללת הודעת הצלחה ואת אובייקט הפרופיל המכיל את נתוני המשתמש (`user`) והפרטים הנוספים (`details`), או מעבירה שגיאה אם לא נמצאו.
+ */
+
 export const getProfile = async ( req,res,next)=>{
 
     const {id,role}= req.currentUser
 
     try{
 
-        const user = await User.findById(id);                  // שדות משותפים
+        const user = await User.findById(id);    // שדות משותפים
         const details = await modelByRole[role].findOne({ userId: id });   // שדות לפי תפקיד
 
         if(!user || !details){
@@ -26,8 +33,7 @@ export const getProfile = async ( req,res,next)=>{
         })
     }
     catch(err){
-       return next (err)
-        
+       return next (err) 
     }
 }
 
@@ -42,7 +48,12 @@ export const getProfile = async ( req,res,next)=>{
     const ObjectOfRoleField = (obj, keys) =>
         Object.fromEntries(Object.entries(obj).filter(([key]) => !keys.includes(key)));
 
-
+/**
+ * פונקציית עדכון פרופיל (updateProfile):
+ * מטרה: מעדכנת את פרטי הפרופיל של המשתמש המחובר. היא מפרידה בין השדות הכלליים של המשתמש (`User`) לבין השדות הספציפיים לתפקיד (`Patient`/`Doctor`) באמצעות פונקציות הסינון, 
+ * בודקת שהאימייל החדש (במידה ושונו) אינו תפוס על ידי משתמש אחר, ומעעדכנת את המסד תוך הפעלת ולידציות. אם לא נשלחו שדות לעדכון באחת מהקבוצות, היא רק שולפת את הנתונים הקיימים.
+ * מחזירה: תגובת HTTP 200 (OK) הכוללת הודעת הצלחה ואת אובייקט הפרופיל המעודכן, או מעבירה שגיאה במקרה של התנגשות נתונים או תקלה.
+ */
 export const updateProfile = async (req,res,next)=>{
   try{
     const { id, role } = req.currentUser;

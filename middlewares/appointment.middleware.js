@@ -2,12 +2,29 @@ import Doctor from '../models/Doctor.model.js';
 import { AppError } from '../utils/AppError.js';
 import { DAYS, DAY_LABELS_HE, toMinutes } from '../utils/time.js';
 
-// Middleware מותאם: בודק שהזמן של התור חוקי (מחר ואילך, לא שבת, לא יום חופש,
-// בתוך שעות העבודה של הרופא ולא בזמן הפסקה). מצורת הנתונים (פורמט) דואג Joi לפני כן
+/**
+ * @fileoverview
+ * השומר המותאם של התורים, זו דרישת חובה של המורה
+ * הוא רץ לפני הפונקציה שקובעת תור, ובודק שהזמן שנבחר הגיוני
+ * שאלות על הצורה של הנתונים נבדקות לפניו בבדיקות התקינות
+ * כאן נבדקות רק שאלות שתלויות במסד הנתונים ובחוקי המרפאה
+ */
+
+/**
+ * מה הוא עושה: בודק שהתאריך והשעה מתאימים לרופא שנבחר
+ * מי קורא לו: הנתיב של קביעת תור, אחרי בדיקות התקינות ולפני הקונטרולר
+ * כל בדיקה שנכשלת זורקת שגיאה עם הסבר, והבקשה נעצרת
+ * אם הכול תקין, ממשיכים לפונקציה הבאה בשרשרת
+ *
+ * @param {Object} req הבקשה, בגוף שלה רופא, תאריך ושעה
+ * @param {Object} res התשובה ללקוח
+ * @param {Function} next ממשיכה לשלב הבא כשהכול תקין
+ * @returns {Promise<void>} לא מחזיר ערך, זורק שגיאה כשהזמן לא תקין
+ */
 export const validateAppointmentTime = async (req, res, next) => {
     const { doctorId, date, time } = req.body;
 
-    // 1) לא היום ולא בעבר: מחר ואילך בלבד
+    // בדיקה ראשונה: אפשר לקבוע תור רק ממחר ואילך
     const appointmentDate = new Date(date);
     const tomorrow = new Date();
     tomorrow.setHours(0, 0, 0, 0);
@@ -17,25 +34,26 @@ export const validateAppointmentTime = async (req, res, next) => {
         throw new AppError('ניתן לקבוע תור החל ממחר.', 400, 'validation error');
     }
 
-    // 2) לא שבת (getDay מחזיר 0 עד 6, ו-DAYS ממיר למספר היום בשם)
+    // בדיקה שנייה: לא ביום שבת
     const dayName = DAYS[appointmentDate.getDay()];
 
     if (dayName === 'Saturday') {
         throw new AppError('לא ניתן לקבוע תורים ביום שבת.', 400, 'validation error');
     }
 
-    // 3) הרופא קיים, ואינו בחופש באותו יום בשבוע
+    // שולפים את הרופא מהמסד כדי לבדוק את שעות העבודה שלו
     const doctor = await Doctor.findById(doctorId);
 
     if (!doctor) {
         throw new AppError('הרופא לא נמצא במערכת.', 404, 'not found');
     }
 
+    // בדיקה שלישית: לא ביום החופש הקבוע של הרופא
     if (doctor.dayOff === dayName) {
         throw new AppError(`הרופא אינו מקבל קהל ביום ${DAY_LABELS_HE[dayName]}.`, 400, 'validation error');
     }
 
-    // 4) השעה בתוך שעות העבודה (toMinutes ממיר '09:30' לדקות כדי שאפשר יהיה להשוות)
+    // בדיקה רביעית: השעה חייבת להיות בתוך שעות העבודה של הרופא
     const requested = toMinutes(time);
 
     if (requested < toMinutes(doctor.workStartTime) || requested >= toMinutes(doctor.workEndTime)) {
@@ -46,7 +64,7 @@ export const validateAppointmentTime = async (req, res, next) => {
         );
     }
 
-    // 5) השעה לא נופלת על אחת ההפסקות
+    // בדיקה חמישית: השעה לא יכולה להיות בזמן הפסקה
     const overlappingBreak = (doctor.breaks || []).find(
         b => requested >= toMinutes(b.startTime) && requested < toMinutes(b.endTime)
     );
@@ -59,5 +77,6 @@ export const validateAppointmentTime = async (req, res, next) => {
         );
     }
 
+    // כל הבדיקות עברו, ממשיכים לפונקציה הבאה
     next();
 };

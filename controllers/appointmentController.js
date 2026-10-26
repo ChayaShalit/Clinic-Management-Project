@@ -8,35 +8,47 @@ import { fileURLToPath } from 'node:url';
 import { sendAppointmentConfirmation } from '../services/notification.service.js';
 import { AppError } from '../utils/AppError.js';
 
-/*
- * ה-controller של התורים: כל פונקציה כאן עושה פעולה אחת על תורים.
- * היא מקבלת בקשה (req) ומחזירה תשובה (res), ומדברת עם מסד הנתונים דרך ה-models.
- *
- * מה רץ לפני הפונקציות (בקובץ appointmentRoutes.js):
- *   auth             - בודק שהמשתמש מחובר ומחלץ ממנו את req.currentUser (id ותפקיד)
- *   authPatient / authDoctor - בודקים את התפקיד: מטופלת או רופאה
- *   validate (Joi)   - בודק שהנתונים שנשלחו בפורמט תקין
- *   validateAppointmentTime - הבדיקות העסקיות של זמן התור (שבת, הפסקות, שעות עבודה)
- *
- * שגיאות: זורקים throw new AppError(הודעה, קוד, סוג). Express 5 תופס שגיאות גם בפונקציות
- * async ושולח אותן ל-error middleware, ולכן אין כאן try/catch (חוץ מ-PDF, ראו שם).
+/**
+ * @fileoverview
+ * קונטרולר התורים: כל הפעולות על תורים
+ * כל פונקציה כאן מקבלת בקשה מהלקוח, עושה פעולה אחת, ומחזירה תשובה
+ * לפני כל פונקציה רצים שומרים שהוגדרו בקובץ הנתיבים
+ * הם בודקים שהמשתמשת מחוברת, מה התפקיד שלה, ושהנתונים שנשלחו תקינים
+ * כשמשהו לא תקין זורקים שגיאה, והיא עוברת לטיפול שגיאות מרכזי
+ * בגלל זה אין כאן בדיקות שגיאה מקומיות, חוץ מהדוח להורדה
  */
 
-// הופכת מחרוזת (למשל '09:00' ל-'00:90'). משמשת רק ב-PDF: מספרים בתוך טקסט עברי מוצגים הפוך,
-// ולכן הופכים אותם מראש כדי שיוצגו נכון
+/**
+ * מה היא עושה: הופכת טקסט, למשל שעה
+ * למה צריך: בדוח להורדה מספרים בתוך עברית מוצגים הפוך, ולכן הופכים אותם מראש
+ * משמשת רק בדוח התורים להורדה
+ *
+ * @param {string} text הטקסט להפיכה
+ * @returns {string} הטקסט בסדר הפוך
+ */
 const ltr = (text) => [...String(text)].reverse().join('');
 
-// הגדרות טקסט עברי ב-PDF: יישור לימין וכיוון כתיבה מימין לשמאל
+// הגדרות לכתיבה בעברית בדוח: יישור לימין וכיוון כתיבה מימין לשמאל
+// מוגדר פעם אחת כדי לא לחזור עליו בכל שורה
 const RTL_TEXT = { align: 'right', features: ['rtla'] };
 
-// שליפת שם המטופלת דרך משתמש המטופלת (משמש את רשימת התורים של הרופא ואת ה-PDF)
+// הוראה לשליפת שם המטופלת
+// בתור שמור רק מזהה של מטופלת, והמטופלת שומרת מזהה של משתמש
+// הפופולייט הולך בשרשרת הזו ומביא רק את השם
+// משמש את רשימת התורים של הרופאה ואת הדוח להורדה
 const POPULATE_PATIENT_NAME = {
     path: 'patientId',
     populate: { path: 'userId', select: 'name' }
 };
 
-// מחזירה את רשומת המטופלת (Patient) של המשתמש המחובר.
-// למה צריך: בטוקן יש רק משתמש (User), ובתור שמור מזהה של מטופלת (Patient). אם אין רשומה: 404
+/**
+ * מה היא עושה: מוצאת את המטופלת של המשתמש המחובר
+ * למה צריך: בטוקן יש מזהה משתמש, ובתור שמור מזהה מטופלת
+ * אם אין מטופלת כזו, זורקת שגיאה 404
+ *
+ * @param {Object} currentUser המשתמש המחובר, עם מזהה ותפקיד מהטוקן
+ * @returns {Promise<Object>} רשומת המטופלת
+ */
 const getCurrentPatient = async (currentUser) => {
     const patient = await Patient.findOne({ userId: currentUser.id });
 
@@ -47,7 +59,13 @@ const getCurrentPatient = async (currentUser) => {
     return patient;
 };
 
-// מחזירה את רשומת הרופא (Doctor) של המשתמש המחובר. אם אין רשומה: 404
+/**
+ * מה היא עושה: מוצאת את הרופא של המשתמש המחובר
+ * אם אין רופא כזה, זורקת שגיאה 404
+ *
+ * @param {Object} currentUser המשתמש המחובר, עם מזהה ותפקיד מהטוקן
+ * @returns {Promise<Object>} רשומת הרופא
+ */
 const getCurrentDoctor = async (currentUser) => {
     const doctor = await Doctor.findOne({ userId: currentUser.id });
 
@@ -58,8 +76,16 @@ const getCurrentDoctor = async (currentUser) => {
     return doctor;
 };
 
-// מחזירה true או false: האם התור שייך למשתמש המחובר?
-// מטופלת: רק תור שהיא קבעה. רופאה: רק תור שנקבע אצלה. כך אי אפשר לבטל תור של מישהי אחרת
+/**
+ * מה היא עושה: בודקת אם התור שייך למי ששלחה את הבקשה
+ * מטופלת רשאית רק על תור שהיא קבעה, ורופאה רק על תור שנקבע אצלה
+ * מחזירה אמת או שקר
+ * ההשוואה היא בין טקסטים, כי מזהים במסד הנתונים הם אובייקטים
+ *
+ * @param {Object} appointment התור שבודקים
+ * @param {Object} currentUser המשתמש המחובר
+ * @returns {Promise<boolean>} אמת אם התור שייך לו, אחרת שקר
+ */
 const canManageAppointment = async (appointment, currentUser) => {
     if (currentUser.role === 'patient') {
         const patient = await Patient.findOne({ userId: currentUser.id });
@@ -74,8 +100,15 @@ const canManageAppointment = async (appointment, currentUser) => {
     return false;
 };
 
-// שולפת תור לפי מזהה ומוודאת שני דברים: שהוא קיים (אחרת 404), ושמותר למשתמש לטפל בו (אחרת 403).
-// מחזירה את התור, ואם משהו לא תקין זורקת שגיאה
+/**
+ * מה היא עושה: שולפת תור ומוודאת שמותר למשתמשת לטפל בו
+ * תור שלא קיים זורק שגיאה 404, ותור של מישהי אחרת זורק שגיאה 403
+ * משמשת את ביטול התור
+ *
+ * @param {string} id מזהה התור
+ * @param {Object} currentUser המשתמש המחובר
+ * @returns {Promise<Object>} התור, אם קיים ומותר לטפל בו
+ */
 const getManagedAppointment = async (id, currentUser) => {
     const appointment = await Appointment.findById(id);
 
@@ -90,22 +123,46 @@ const getManagedAppointment = async (id, currentUser) => {
     return appointment;
 };
 
-// בודקת שאין כבר תור מאושר אצל אותו רופא, באותו תאריך ובאותה שעה.
-// אם יש, זורקת שגיאה 409 (התנגשות). exists מחזירה רק אם נמצא תור, בלי להביא את כל הנתונים
+/**
+ * מה היא עושה: בודקת שאין כבר תור באותה שעה אצל אותו רופא
+ * אם יש, זורקת שגיאה 409 שמשמעותה התנגשות
+ * משמשת בזמן קביעת תור חדש
+ *
+ * @param {Object} details פרטי התור שרוצים לקבוע
+ * @param {string} details.doctorId מזהה הרופא
+ * @param {string} details.date התאריך
+ * @param {string} details.time השעה
+ * @returns {Promise<void>} לא מחזירה ערך, ואם השעה תפוסה זורקת שגיאה
+ */
 const assertSlotFree = async ({ doctorId, date, time }) => {
     if (await Appointment.exists({ doctorId, date, time, status: 'confirmed' })) {
         throw new AppError('השעה שבחרת כבר תפוסה אצל רופא זה. אנא בחרו זמן אחר.', 409, 'conflict');
     }
 };
 
-// התאריך של היום לפי שעון ישראל, בפורמט YYYY-MM-DD (למשל '2026-10-27').
-// השרת בענן רץ לפי שעון UTC, ולכן לא סומכים על new Date() הרגיל כדי לדעת מה "היום" אצלנו
+/**
+ * מה היא עושה: מחזירה את התאריך של היום לפי שעון ישראל
+ * למה צריך: השרת בענן עובד לפי שעון עולמי, ובין חצות לשלוש בלילה התאריך שלו שונה משלנו
+ * משמשת בדוח התורים להורדה
+ *
+ * @returns {string} התאריך של היום, שנה חודש ויום
+ */
 const todayInIsrael = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jerusalem' }).format(new Date());
 
-// קביעת תור חדש. POST /appointments. רק מטופלת (authPatient).
-// שלבים: 1) מזהים את המטופלת לפי הטוקן 2) בודקים שהשעה פנויה 3) שומרים את התור 4) שולחים מייל אישור.
-// שימו לב: המטופלת לא נשלחת בבקשה אלא נקבעת מהטוקן (כדי שלא יוכלו לקבוע תור בשם מישהי אחרת).
-// הנתונים כבר עברו Joi וגם validateAppointmentTime, לכן כאן אין בדיקות פורמט
+/**
+ * מה היא עושה: קובעת תור חדש
+ * מי קורא לה: דף היומן, כשהמטופלת לוחצת על כפתור הקביעה
+ * מה מגיע מהלקוח: רופא, תאריך, שעה, סוג טיפול ובקשה לתזכורת
+ * המטופלת לא נשלחת מהלקוח אלא נקבעת מהטוקן, כדי שאי אפשר לקבוע תור על שם מישהי אחרת
+ * סדר הפעולות: מוצאים את המטופלת, בודקים שהשעה פנויה, שומרים במסד, ושולחים מייל אישור
+ * מה חוזר ללקוח: הודעת הצלחה והתור שנשמר
+ * הכתובת בשרת
+ * POST /api/appointments
+ *
+ * @param {Object} req הבקשה, בגוף שלה רופא, תאריך, שעה, סוג טיפול ותזכורת, ובה גם המשתמשת המחוברת
+ * @param {Object} res התשובה ללקוח
+ * @returns {Promise<void>} שולחת תשובה ללקוח ולא מחזירה ערך
+ */
 export const createAppointment = async (req, res) => {
     const { doctorId, date, time, treatmentType, wantsReminder } = req.body;
 
@@ -125,11 +182,12 @@ export const createAppointment = async (req, res) => {
         patientEmail: user.email
     });
 
+    // שמירת התור במסד הנתונים
     await newAppointment.save();
 
     const doctor = await Doctor.findById(doctorId).populate('userId', 'name').catch(() => null);
 
-    // אין כאן await בכוונה: המייל נשלח ברקע ולא מעכב את התשובה, וכישלון בשליחה לא מבטל את התור
+    // שליחת המייל ברקע, בלי לחכות לו, כדי שלא יעכב את התשובה
     sendAppointmentConfirmation({
         to: user.email,
         patientName: user.name,
@@ -140,15 +198,25 @@ export const createAppointment = async (req, res) => {
         wantsReminder
     }).catch((error) => console.error('שליחת מייל אישור נכשלה:', error.message));
 
+    // התשובה ללקוח, קוד 201 שמשמעותו נוצר בהצלחה
     res.status(201).json({
         message: 'התור נקבע בהצלחה!',
         appointment: newAppointment
     });
 };
 
-// ביטול תור. DELETE /appointments/:id.
-// רק המטופלת שקבעה את התור, או הרופאה שלו (getManagedAppointment בודקת הרשאה).
-// שימו לב: זו מחיקה אמיתית מהמסד, ולא שינוי סטטוס ל"מבוטל"
+/**
+ * מה היא עושה: מבטלת תור
+ * מי קורא לה: כפתור ביטול תור בדף הראשי של המטופלת
+ * רק מי שקבעה את התור או הרופאה שלו רשאיות, אחרת חוזרת שגיאה 403
+ * שימו לב שזו מחיקה מלאה מהמסד ולא שינוי סטטוס
+ * הכתובת בשרת
+ * DELETE /api/appointments/:id
+ *
+ * @param {Object} req הבקשה, בכתובת שלה מזהה התור
+ * @param {Object} res התשובה ללקוח
+ * @returns {Promise<void>} שולחת תשובה ללקוח ולא מחזירה ערך
+ */
 export const deleteAppointment = async (req, res) => {
     const appointment = await getManagedAppointment(req.params.id, req.currentUser);
 
@@ -157,16 +225,34 @@ export const deleteAppointment = async (req, res) => {
     res.status(200).json({ message: 'התור בוטל בהצלחה' });
 };
 
-// תורים של רופא לפי מזהה בכתובת. GET /appointments/doctor/:doctorId.
-// שימו לב: לא בשימוש בלקוח (הרופא משתמש ב-getMyDoctorAppointments)
+/**
+ * מה היא עושה: מחזירה את התורים של רופא לפי מזהה שבכתובת
+ * כרגע אף דף בלקוח לא משתמש בה, כי הרופאה משתמשת בפונקציה שמזהה אותה מהטוקן
+ * הכתובת בשרת
+ * GET /api/appointments/doctor/:doctorId
+ *
+ * @param {Object} req הבקשה, בכתובת שלה מזהה הרופא
+ * @param {Object} res התשובה ללקוח
+ * @returns {Promise<void>} שולחת תשובה ללקוח ולא מחזירה ערך
+ */
 export const getDoctorAppointments = async (req, res) => {
     const appointments = await Appointment.find({ doctorId: req.params.doctorId }).sort({ time: 1 });
 
     res.status(200).json({ appointments });
 };
 
-// התורים של המטופלת המחוברת. GET /appointments/my. משמשת את הדף הראשי של המטופלת.
-// populate מוסיף את שם הרופא (התור שומר רק מזהה), והמיון לפי תאריך ושעה (1 = סדר עולה)
+/**
+ * מה היא עושה: מחזירה את התורים של המטופלת המחוברת
+ * מי קורא לה: הדף הראשי של המטופלת, בטעינת התורים הקרובים
+ * בתור שמור רק מזהה הרופא, ולכן הפופולייט מוסיף את שם הרופא
+ * התורים ממוינים לפי תאריך ושעה, מהמוקדם למאוחר
+ * הכתובת בשרת
+ * GET /api/appointments/my
+ *
+ * @param {Object} req הבקשה, ובה המטופלת המחוברת
+ * @param {Object} res התשובה ללקוח
+ * @returns {Promise<void>} שולחת תשובה ללקוח ולא מחזירה ערך
+ */
 export const getMyAppointments = async (req, res) => {
     const patient = await getCurrentPatient(req.currentUser);
 
@@ -177,8 +263,17 @@ export const getMyAppointments = async (req, res) => {
     res.status(200).json({ appointments });
 };
 
-// התורים של הרופאה המחוברת. GET /appointments/doctor/my. משמשת את הדף הראשי שלה.
-// populate מוסיף את שם המטופלת (דרך POPULATE_PATIENT_NAME)
+/**
+ * מה היא עושה: מחזירה את התורים של הרופאה המחוברת
+ * מי קורא לה: הדף הראשי של הרופאה, ומשם מוצגים תורי היום וכל התורים
+ * הפופולייט מוסיף את שם המטופלת
+ * הכתובת בשרת
+ * GET /api/appointments/doctor/my
+ *
+ * @param {Object} req הבקשה, ובה הרופאה המחוברת
+ * @param {Object} res התשובה ללקוח
+ * @returns {Promise<void>} שולחת תשובה ללקוח ולא מחזירה ערך
+ */
 export const getMyDoctorAppointments = async (req, res) => {
     const doctor = await getCurrentDoctor(req.currentUser);
 
@@ -189,16 +284,25 @@ export const getMyDoctorAppointments = async (req, res) => {
     res.status(200).json({ appointments });
 };
 
-// דוח PDF של תורי היום של הרופאה. GET /appointments/doctor/my/today/pdf.
-// מסננת תורים של היום (לפי שעון ישראל) שלא בוטלו, וכותבת אותם לקובץ PDF בעזרת ספריית pdfkit.
-// דברים מיוחדים: 1) pdfkit לא יודעת עברית לבד, ולכן יש גופן עברי בתיקיית fonts, RTL_TEXT ו-ltr.
-// 2) הקובץ נשלח כזרם (pipe) ישר לתשובה, ולכן נשאר כאן try/catch: אם כבר התחלנו לשלוח אי אפשר
-//    להחזיר שגיאה רגילה, ורק מנתקים את החיבור
+/**
+ * מה היא עושה: יוצרת דוח להורדה עם תורי היום של הרופאה
+ * מי קורא לה: כפתור ההורדה בדף הראשי של הרופאה
+ * איך זה עובד: מוצאים את תורי היום שלא בוטלו, וכותבים אותם לקובץ בעזרת ספרייה ליצירת קבצים
+ * הקובץ נשלח ללקוח ישר תוך כדי כתיבה
+ * הגופן העברי נמצא בתיקיית הגופנים של הפרויקט, כדי שיעבוד גם בשרת בענן
+ * כאן נשארו בדיקות שגיאה מקומיות, כי אחרי שהתחלנו לשלוח אי אפשר להחזיר שגיאה רגילה
+ * הכתובת בשרת
+ * GET /api/appointments/doctor/my/today/pdf
+ *
+ * @param {Object} req הבקשה, ובה הרופאה המחוברת
+ * @param {Object} res התשובה, אליה נשלח הקובץ
+ * @param {Function} next מעבירה שגיאה לטיפול השגיאות המרכזי
+ * @returns {Promise<void>} שולחת קובץ ללקוח ולא מחזירה ערך
+ */
 export const downloadTodayAppointmentsPDF = async (req, res, next) => {
     try {
         const doctor = await getCurrentDoctor(req.currentUser);
 
-        // תורים נשמרים כתאריך בשעה 00:00 לפי UTC, ולכן מחפשים התאמה מדויקת לתאריך של היום
         const todayKey = todayInIsrael();
 
         const appointments = await Appointment.find({
@@ -209,7 +313,6 @@ export const downloadTodayAppointmentsPDF = async (req, res, next) => {
             .populate(POPULATE_PATIENT_NAME)
             .sort({ time: 1 });
 
-        // גופן עברי שנמצא בתוך הפרויקט, כדי שיעבוד גם בשרת בענן
         const fontPath = fileURLToPath(new URL('../fonts/Heebo-Regular.ttf', import.meta.url));
 
         if (!fs.existsSync(fontPath)) {
@@ -262,7 +365,6 @@ export const downloadTodayAppointmentsPDF = async (req, res, next) => {
         doc.end();
 
     } catch (error) {
-        // כאן נשאר try/catch כי אם כבר התחלנו לשלוח את הקובץ אי אפשר לשלוח תשובת שגיאה רגילה
         if (res.headersSent) {
             console.error('PDF error:', error);
             return res.destroy(error);
@@ -272,11 +374,18 @@ export const downloadTodayAppointmentsPDF = async (req, res, next) => {
     }
 };
 
-// השעות התפוסות אצל רופא ביום מסוים. GET /appointments/availability?doctorId=...&date=...
-// הלקוח (היומן) מחסיר אותן מהשעות של הרופא, כך שהמטופלת רואה רק שעות פנויות.
-// הפרמטרים מגיעים בכתובת (req.query, לא req.body) ועוברים Joi בקובץ הנתיבים.
-// מחזירה רק את השדה time של כל תור (select), כדי לא לשלוח מידע מיותר
-// הרופא והתאריך מגיעים בכתובת (query) ועוברים Joi בקובץ הנתיבים
+/**
+ * מה היא עושה: מחזירה את השעות התפוסות אצל רופא ביום מסוים
+ * מי קורא לה: דף היומן, אחרי שהמטופלת בוחרת יום
+ * הלקוח מחסיר את השעות התפוסות משעות העבודה של הרופא ומציג רק שעות פנויות
+ * הרופא והתאריך מגיעים בכתובת עצמה ולא בגוף הבקשה
+ * הכתובת בשרת
+ * GET /api/appointments/availability?doctorId=...&date=...
+ *
+ * @param {Object} req הבקשה, בכתובת שלה הרופא והתאריך
+ * @param {Object} res התשובה ללקוח
+ * @returns {Promise<void>} שולחת תשובה ללקוח ולא מחזירה ערך
+ */
 export const getAvailability = async (req, res) => {
     const { doctorId, date } = req.query;
 

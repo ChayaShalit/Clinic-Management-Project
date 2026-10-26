@@ -72,7 +72,6 @@ function updateNotesCount() {
   $('notesCount').textContent = $('medicalNotes').value.length;
 }
 
-
 // בונה את מה שנשלח לשרת
 function buildPayload() {
   const data = Object.fromEntries(new FormData(form));   // אימייל וקבוצת התפקיד השני לא נכללים

@@ -1,14 +1,21 @@
 import Doctor from '../models/Doctor.model.js'
 import { AppError } from '../utils/AppError.js'
 
-/*
- * ה-controller של שעות העבודה של הרופא: שליפה ועדכון של הלוח שלו.
- * מה שמוגדר כאן קובע מתי מטופלות יכולות לקבוע תור: validateAppointmentTime והיומן קוראים את
- * אותם נתונים (שעות, אורך תור, יום חופש והפסקות).
- * הרופא מזוהה לפי הטוקן, ולכן אי אפשר לשנות שעות של רופא אחר.
+/**
+ * @fileoverview
+ * קונטרולר שעות העבודה של הרופא: שליפה ועדכון
+ * מה שנשמר כאן קובע מתי מטופלות יכולות לקבוע תור
+ * היומן בלקוח ובדיקת הזמנים בשרת קוראים את אותם נתונים
+ * הרופא מזוהה לפי הטוקן, ולכן אי אפשר לשנות שעות של רופא אחר
  */
 
-// בוחרת מהרופא רק את השדות שנשלחים ללקוח (בלי מזהים ופרטים פנימיים)
+/**
+ * מה היא עושה: בוחרת מהרופא רק את השדות שנשלחים ללקוח
+ * כך לא נשלחים מזהים ופרטים פנימיים
+ *
+ * @param {Object} doctor הרופא כפי שנשמר במסד
+ * @returns {Object} שעות העבודה בצורה שנשלחת ללקוח
+ */
 const formatSchedule = (doctor) => ({
     appointmentDuration: doctor.appointmentDuration,
     workStartTime: doctor.workStartTime,
@@ -17,8 +24,13 @@ const formatSchedule = (doctor) => ({
     breaks: (doctor.breaks || []).map(b => ({ startTime: b.startTime, endTime: b.endTime }))
 })
 
-// מחזירה את רשומת הרופא של המשתמש המחובר, ואם אין כזו זורקת 404.
-// השגיאה עוברת ל-error middleware (Express 5 תופס גם שגיאות של async), ולכן אין try/catch
+/**
+ * מה היא עושה: מוצאת את הרופא של המשתמש המחובר
+ * אם אין רופא כזה, זורקת שגיאה 404
+ *
+ * @param {Object} currentUser המשתמש המחובר, עם מזהה ותפקיד מהטוקן
+ * @returns {Promise<Object>} רשומת הרופא
+ */
 const getCurrentDoctor = async (currentUser) => {
     const doctor = await Doctor.findOne({ userId: currentUser.id })
 
@@ -29,17 +41,35 @@ const getCurrentDoctor = async (currentUser) => {
     return doctor
 }
 
-// שליפת שעות העבודה של הרופא המחובר. GET /doctors/me/schedule. רק רופא (authDoctor)
+/**
+ * מה היא עושה: מחזירה את שעות העבודה של הרופא המחובר
+ * מי קורא לה: דף שעות העבודה, כשהוא נפתח, כדי למלא את הטופס
+ * הכתובת בשרת
+ * GET /api/doctors/me/schedule
+ *
+ * @param {Object} req הבקשה, ובה הרופא המחובר
+ * @param {Object} res התשובה ללקוח
+ * @returns {Promise<void>} שולחת תשובה ללקוח ולא מחזירה ערך
+ */
 export const getMySchedule = async (req, res) => {
     const doctor = await getCurrentDoctor(req.currentUser)
 
     res.status(200).json({ schedule: formatSchedule(doctor) })
 }
 
-// עדכון שעות העבודה של הרופא המחובר. PUT /doctors/me/schedule. רק רופא (authDoctor).
-// כל הבדיקות כבר נעשו ב-Joi (doctorScheduleSchema בקובץ הנתיבים): פורמט שעות, הסיום אחרי ההתחלה,
-// אורך תור בין 5 ל-120, והפסקות בתוך שעות העבודה. לכן כאן רק שומרים.
-// שימו לב: dayOff ריק ('' או null) נשמר כ-undefined, כלומר "אין יום חופש קבוע"
+/**
+ * מה היא עושה: שומרת את שעות העבודה החדשות של הרופא
+ * מי קורא לה: דף שעות העבודה, כשהרופא לוחץ על שמירה
+ * כל בדיקות התקינות כבר נעשו לפני כן, ולכן כאן רק שומרים
+ * יום חופש ריק נשמר כאילו אין יום חופש קבוע
+ * מה חוזר ללקוח: הודעת הצלחה והשעות כפי שנשמרו
+ * הכתובת בשרת
+ * PUT /api/doctors/me/schedule
+ *
+ * @param {Object} req הבקשה, בגוף שלה שעות העבודה החדשות
+ * @param {Object} res התשובה ללקוח
+ * @returns {Promise<void>} שולחת תשובה ללקוח ולא מחזירה ערך
+ */
 export const updateMySchedule = async (req, res) => {
     const { appointmentDuration, workStartTime, workEndTime, dayOff, breaks } = req.body
 

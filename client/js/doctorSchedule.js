@@ -1,5 +1,21 @@
 import { getMySchedule, saveMySchedule, hasToken } from '../services/doctorScheduleService.js'
 
+/**
+ * @fileoverview
+ * דף שעות העבודה של הרופא
+ * הרופא רואה ומשנה שעות עבודה, אורך תור, יום חופש והפסקות
+ * הדף מדבר עם השרת פעמיים: בפתיחה הוא שולף את השעות הקיימות, ובשמירה הוא שולח את החדשות
+ * שתי הפניות עוברות דרך קובץ השירות של שעות העבודה
+ * GET /api/doctors/me/schedule
+ * PUT /api/doctors/me/schedule
+ */
+
+/**
+ * קיצור לשליפת אלמנט מהדף לפי המזהה שלו
+ *
+ * @param {string} id המזהה של האלמנט
+ * @returns {HTMLElement} האלמנט מהדף
+ */
 const $ = (id) => document.getElementById(id)
 
 const form = $('schedule-form')
@@ -7,38 +23,71 @@ const breaksList = $('breaksList')
 const noBreaks = $('noBreaks')
 const submitBtn = $('submitBtn')
 
+// מונה שנותן לכל שדה הפסקה מזהה ייחודי, כדי לחבר כל תווית לשדה שלה
 let breakCounter = 0
 
+/**
+ * הופכת שעה למספר דקות, כדי שאפשר יהיה להשוות שעות
+ *
+ * @param {string} hhmm שעה בצורה של שעות ודקות
+ * @returns {number} מספר הדקות מתחילת היום
+ */
 const toMinutes = (hhmm) => {
     const [h, m] = hhmm.split(':').map(Number)
     return h * 60 + m
 }
 
-/* ---------- הודעות ---------- */
+/**
+ * מסתירה את תיבות ההודעות, גם של הצלחה וגם של שגיאה
+ */
 const hideNotices = () => {
     $('formError').hidden = true
     $('formSuccess').hidden = true
 }
 
+/**
+ * מציגה הודעת שגיאה בתיבה האדומה, ומסתירה את תיבת ההצלחה
+ *
+ * @param {string} text הטקסט להצגה
+ */
 const showError = (text) => {
     $('formSuccess').hidden = true
     $('formErrorText').textContent = text
     $('formError').hidden = false
 }
 
+/**
+ * מציגה הודעת הצלחה בתיבה הירוקה, ומסתירה את תיבת השגיאה
+ *
+ * @param {string} text הטקסט להצגה
+ */
 const showSuccess = (text) => {
     $('formError').hidden = true
     $('formSuccessText').textContent = text
     $('formSuccess').hidden = false
 }
 
+/**
+ * מציגה הודעה שצריך להתחבר כרופא
+ * וגם נועלת את כפתור השמירה, כי בלי התחברות אי אפשר לשמור
+ *
+ * @param {string} [text] הטקסט להצגה, לא חובה
+ */
 const showAuthNotice = (text) => {
     if (text) $('authNoticeText').textContent = text
     $('authNotice').hidden = false
     submitBtn.disabled = true
 }
 
-/* ---------- הפסקות: שורה אחת בטופס ---------- */
+/**
+ * מה היא עושה: בונה שדה שעה אחד עם תווית, לשורת הפסקה
+ * התווית מחוברת לשדה בעזרת מזהה ייחודי, כדי שקוראי מסך יבינו מה כל שדה
+ *
+ * @param {string} labelText טקסט התווית
+ * @param {string} value הערך ההתחלתי של השעה
+ * @param {string} inputClass שם עיצוב שמזהה את השדה
+ * @returns {HTMLElement} העמודה עם התווית והשדה
+ */
 function createTimeField(labelText, value, inputClass) {
     breakCounter += 1
     const inputId = `break-time-${breakCounter}`
@@ -62,6 +111,15 @@ function createTimeField(labelText, value, inputClass) {
     return col
 }
 
+/**
+ * מה היא עושה: בונה שורה שלמה של הפסקה: שעת התחלה, שעת סיום וכפתור מחיקה
+ * לחיצה על המחיקה מסירה את השורה ומעדכנת את הודעת אין הפסקות
+ * משמשת גם כשממלאים את הטופס מהשרת, וגם כשהרופא מוסיף הפסקה חדשה
+ *
+ * @param {string} [startTime] שעת ההתחלה, ברירת מחדל ריקה
+ * @param {string} [endTime] שעת הסיום, ברירת מחדל ריקה
+ * @returns {HTMLElement} שורת ההפסקה
+ */
 function createBreakRow(startTime = '', endTime = '') {
     const row = document.createElement('div')
     row.className = 'row g-2 align-items-end mb-2 break-row'
@@ -93,11 +151,19 @@ function createBreakRow(startTime = '', endTime = '') {
     return row
 }
 
+/**
+ * מציגה את הודעה אין הפסקות רק כשאין אף שורת הפסקה
+ */
 function updateEmptyState() {
     noBreaks.hidden = breaksList.children.length > 0
 }
 
-/* ---------- קריאה וכתיבה של נתוני הטופס ---------- */
+/**
+ * מה היא עושה: ממלאת את הטופס בשעות שהתקבלו מהשרת
+ * מי קורא לה: הפונקציה שפותחת את הדף, ואחרי שמירה מוצלחת
+ *
+ * @param {Object} schedule שעות העבודה מהשרת
+ */
 function fillForm(schedule) {
     $('workStartTime').value = schedule.workStartTime || ''
     $('workEndTime').value = schedule.workEndTime || ''
@@ -110,6 +176,12 @@ function fillForm(schedule) {
     updateEmptyState()
 }
 
+/**
+ * מה היא עושה: קוראת את מה שמולא בטופס ובונה אובייקט שאפשר לשלוח לשרת
+ * זה בדיוק המבנה שהשרת מצפה לקבל
+ *
+ * @returns {Object} שעות העבודה כפי שמולאו בטופס
+ */
 function readForm() {
     return {
         workStartTime: $('workStartTime').value,
@@ -123,7 +195,15 @@ function readForm() {
     }
 }
 
-// בדיקות שלא ניתן לעשות ב-HTML בלבד. מחזירה טקסט שגיאה, או מחרוזת ריקה אם הכול תקין
+/**
+ * מה היא עושה: בודקת בצד הלקוח כללים שהטופס לבדו לא יכול לבדוק
+ * הסיום אחרי ההתחלה, וההפסקות בתוך שעות העבודה
+ * מחזירה טקסט שגיאה, או טקסט ריק כשהכול תקין
+ * השרת בודק את אותם כללים שוב, כי אי אפשר לסמוך רק על הדפדפן
+ *
+ * @param {Object} data שעות העבודה מהטופס
+ * @returns {string} טקסט שגיאה, או טקסט ריק כשהכול תקין
+ */
 function validate(data) {
     const start = toMinutes(data.workStartTime)
     const end = toMinutes(data.workEndTime)
@@ -148,13 +228,19 @@ function validate(data) {
     return ''
 }
 
-/* ---------- אירועים ---------- */
+// כפתור הוספת הפסקה: מוסיף שורה ריקה וממקד את הסמן בה
 $('addBreakBtn').addEventListener('click', () => {
     breaksList.append(createBreakRow())
     updateEmptyState()
     breaksList.lastElementChild.querySelector('input').focus()
 })
 
+// מה קורה בלחיצה על שמירה
+// עוצרים את הטעינה מחדש של הדף, קוראים את הטופס ובודקים אותו
+// אם תקין, שולחים לשרת, ומציגים הצלחה או שגיאה
+// שגיאת התחברות מציגה הודעה להתחבר, ושגיאת תקשורת מציגה הודעה שהשרת לא זמין
+// הכפתור ננעל בזמן השמירה כדי שלא ישלחו פעמיים
+// PUT /api/doctors/me/schedule
 form.addEventListener('submit', async (e) => {
     e.preventDefault()
     hideNotices()
@@ -185,13 +271,18 @@ form.addEventListener('submit', async (e) => {
             showError(error.message)
         }
     } finally {
-        // אם הוצגה הודעת התחברות, הכפתור נשאר חסום
         if ($('authNotice').hidden) submitBtn.disabled = false
         submitBtn.textContent = 'שמירת שעות העבודה'
     }
 })
 
-/* ---------- טעינה ראשונית ---------- */
+/**
+ * מה היא עושה: מה שקורה כשהדף נפתח
+ * בלי טוקן מציגה הודעה להתחבר, ועם טוקן שולפת את השעות מהשרת וממלאת את הטופס
+ * GET /api/doctors/me/schedule
+ *
+ * @returns {Promise<void>} לא מחזירה ערך
+ */
 async function init() {
     if (!hasToken()) {
         showAuthNotice()
@@ -213,4 +304,5 @@ async function init() {
     }
 }
 
+// מפעילים את הפתיחה כשהדף נטען
 init()

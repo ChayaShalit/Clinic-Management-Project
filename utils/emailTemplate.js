@@ -1,13 +1,41 @@
 // עיצוב המיילים: תבנית HTML אחת ששני המיילים משתמשים בה.
 // העיצוב מוטמע בתוך התגיות (inline), כי לקוחות מייל לא תומכים ב-CSS חיצוני.
 
+// שם המרפאה. מופיע בכותרת המייל, בפס התחתון ובשם השולח
 export const CLINIC = 'מרפאה דיגיטלית';
+// הסלוגן שמתחת לשם המרפאה בכותרת המייל
 const TAGLINE = 'הבריאות שלך בקליק';
+// צבעי המייל. נכתבים ישירות בתגיות, כי תוכנות מייל לא תומכות בקובץ עיצוב חיצוני
 const COLORS = { ink: '#0a3d44', teal: '#0f766e', soft: '#e4f6f3', text: '#1b2236', muted: '#667085', line: '#e4e9f2', tile: '#f2f5f5' };
 
-// מונע הזרקת קוד: כל טקסט שנכנס למייל עובר דרך הפונקציה הזו
+/**
+ * מה היא עושה: מנקה טקסט לפני שמכניסים אותו ל-HTML
+ * מחליפה תווים מסוכנים כמו < ו-> בגרסה בטוחה שמוצגת כטקסט
+ * למה צריך: מונעת הזרקת קוד (XSS). שם מטופלת כמו <b>רחל</b> יוצג במייל כטקסט ולא יורץ כקוד
+ * ערך ריק הופך למחרוזת ריקה
+ *
+ * @param {*} value הטקסט לניקוי
+ * @returns {string} טקסט בטוח להכנסה ל-HTML
+ */
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+/**
+ * מה היא עושה: בונה את המייל המעוצב, כמחרוזת HTML אחת
+ * כותרת כהה עם שם המרפאה, ברכה, כותרת, פסקת פתיחה, טבלת פרטים, הערה ופס תחתון
+ * כל טקסט שנכנס למייל עובר דרך escapeHtml
+ * למה צריך: עיצוב אחד שכל המיילים משתמשים בו, ולכן כולם נראים אותו דבר
+ * הפריסה בטבלאות כי זה מה שתוכנות המייל מבינות
+ * משמשת את sendMail בשירות המיילים
+ *
+ * @param {Object} content תוכן המייל
+ * @param {string} content.preheader טקסט מוסתר שמוצג כתצוגה מקדימה ברשימת המיילים
+ * @param {string} content.title הכותרת הגדולה
+ * @param {string} content.greeting הברכה, למשל שלום רחל
+ * @param {string} content.intro פסקת הפתיחה
+ * @param {Array<Array<string>>} content.rows שורות הטבלה, כל שורה היא כותרת וערך
+ * @param {string} content.note ההערה בתחתית
+ * @returns {string} המייל כ-HTML מלא
+ */
 export const buildHtml = ({ preheader, title, greeting, intro, rows, note }) => `<!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${escapeHtml(title)}</title></head>

@@ -22,7 +22,7 @@ import { CLINIC, buildHtml } from '../utils/emailTemplate.js';
  *
  * @returns {boolean} אמת אם שני המשתנים קיימים
  */
-const isMailConfigured = () => Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+const isMailConfigured = () => Boolean(process.env.EMAIL_USER && (process.env.BREVO_API_KEY || process.env.EMAIL_PASS));
 
 /**
  * מה היא עושה: הופכת תאריך לאובייקט Date של יום מלא, בלי הזזה של יום
